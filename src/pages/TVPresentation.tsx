@@ -1,9 +1,10 @@
-import { Play, Pause, ChevronLeft, ChevronRight, Monitor } from "lucide-react";
+import { Play, Pause, ChevronLeft, ChevronRight, Monitor, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TVSlide } from "@/components/TVSlide";
 import { useAutoPlay } from "@/hooks/useAutoPlay";
 import { tvSlides } from "@/data/tvSlides";
 import logoGrupoFN from "@/assets/logo-grupofn.png";
+import { Link } from "react-router-dom";
 
 export default function TVPresentation() {
   const { currentSlide, isPlaying, nextSlide, previousSlide, goToSlide, togglePlay } = useAutoPlay({
@@ -22,9 +23,21 @@ export default function TVPresentation() {
             <p className="text-xs text-sidebar-foreground/70">Apresentação Automática</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Monitor className="h-4 w-4 text-primary" />
-          <span className="text-xs text-sidebar-foreground">Modo TV</span>
+        <div className="flex items-center gap-4">
+          <Link to="/">
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-sidebar-accent/50 hover:bg-sidebar-accent/80 border-sidebar-border/50 text-sidebar-foreground"
+            >
+              <LayoutDashboard className="h-4 w-4 mr-2" />
+              <span className="text-xs">Voltar ao Dashboard</span>
+            </Button>
+          </Link>
+          <div className="flex items-center gap-2">
+            <Monitor className="h-4 w-4 text-primary" />
+            <span className="text-xs text-sidebar-foreground">Modo TV</span>
+          </div>
         </div>
       </header>
 
