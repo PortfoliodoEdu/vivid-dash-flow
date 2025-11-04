@@ -1,8 +1,6 @@
 import { ExpandableChart } from "@/components/ExpandableChart";
 import { FilterBadges } from "@/components/FilterBadges";
-import { FilterButtons } from "@/components/FilterButtons";
 import { CustomTooltip } from "@/components/CustomTooltip";
-import { useFilters } from "@/contexts/FilterContext";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from "recharts";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
@@ -84,15 +82,11 @@ const metasTime = [
 ];
 
 export default function Sales() {
-  const { filters, setFilter } = useFilters();
-
   const totalVendas = vendedoresPerformance.reduce((acc, curr) => acc + curr.vendas, 0);
   const totalMeta = vendedoresPerformance.reduce((acc, curr) => acc + curr.meta, 0);
   const atingimentoMeta = ((totalVendas / totalMeta) * 100).toFixed(1);
   const conversaoMedia = (vendedoresPerformance.reduce((acc, curr) => acc + curr.conversao, 0) / vendedoresPerformance.length).toFixed(1);
   const ticketMedio = Math.round(vendedoresPerformance.reduce((acc, curr) => acc + curr.ticket, 0) / vendedoresPerformance.length);
-
-  const vendedorFilters = vendedoresPerformance.map(v => ({ label: v.vendedor, value: v.vendedor }));
 
   const handleVendedorClick = (data: any) => {
     if (data && data.activeLabel) {
@@ -102,17 +96,9 @@ export default function Sales() {
 
   return (
     <div className="p-8 space-y-8 animate-fade-in">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-4xl font-bold text-foreground mb-2">Comercial & Vendas</h1>
-          <p className="text-muted-foreground">Performance individual e metas do time comercial</p>
-        </div>
-        <FilterButtons
-          filters={vendedorFilters}
-          currentValue={filters.region}
-          onValueChange={(val) => setFilter("region", val || undefined)}
-          placeholder="Filtrar vendedor"
-        />
+      <div>
+        <h1 className="text-4xl font-bold text-foreground mb-2">Comercial & Vendas</h1>
+        <p className="text-muted-foreground">Performance individual e metas do time comercial</p>
       </div>
 
       <FilterBadges />
