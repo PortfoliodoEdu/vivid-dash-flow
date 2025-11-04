@@ -23,7 +23,7 @@ export const ExpandableChart = ({ title, children, delay = 0, description }: Exp
   return (
     <>
       <Card
-        className="p-6 gradient-card border-border shadow-soft hover:shadow-hover transition-all duration-300 animate-scale-in relative group"
+        className="p-6 gradient-card border-border shadow-soft hover:shadow-hover transition-all duration-300 animate-scale-in relative group hover:z-10"
         style={{ animationDelay: `${delay}ms` }}
       >
         <div className="flex items-start justify-between mb-4">
