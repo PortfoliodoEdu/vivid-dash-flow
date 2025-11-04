@@ -1,5 +1,6 @@
 import { LayoutDashboard, TrendingUp, Users, Target, DollarSign, Menu, UserCheck, BarChart3, Package, Tv } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import logoGrupoFN from "@/assets/logo-grupofn.png";
 import {
   Sidebar,
   SidebarContent,
@@ -31,9 +32,7 @@ export function DashboardSidebar() {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
         {open && (
-          <h2 className="text-lg font-semibold text-sidebar-foreground">
-            Painel Analytics
-          </h2>
+          <img src={logoGrupoFN} alt="Grupo FN" className="h-10" />
         )}
         <SidebarTrigger>
           <Menu className="h-5 w-5" />
