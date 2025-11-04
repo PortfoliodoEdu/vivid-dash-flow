@@ -1,4 +1,4 @@
-import { LayoutDashboard, TrendingUp, Users, Settings, Target, Menu } from "lucide-react";
+import { LayoutDashboard, TrendingUp, Users, Target, DollarSign, Menu, UserCheck, BarChart3, Package } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
   Sidebar,
@@ -15,10 +15,13 @@ import {
 
 const menuItems = [
   { title: "Visão Executiva", url: "/", icon: LayoutDashboard },
-  { title: "Financeiro & DRE", url: "/financial", icon: TrendingUp },
-  { title: "Vendas & LTV/CAC", url: "/sales", icon: Users },
+  { title: "Clientes & Retenção", url: "/clients", icon: UserCheck },
+  { title: "Comercial & Vendas", url: "/sales", icon: BarChart3 },
+  { title: "Margem por Serviço", url: "/services", icon: Package },
   { title: "Marketing & ROI", url: "/marketing", icon: Target },
-  { title: "Fluxo de Caixa", url: "/cashflow", icon: Settings },
+  { title: "Financeiro & DRE", url: "/financial", icon: TrendingUp },
+  { title: "Fluxo de Caixa", url: "/cashflow", icon: DollarSign },
+  { title: "Recursos Humanos", url: "/hr", icon: Users },
 ];
 
 export function DashboardSidebar() {

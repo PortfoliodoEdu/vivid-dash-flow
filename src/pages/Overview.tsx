@@ -1,4 +1,4 @@
-import { DollarSign, TrendingUp, TrendingDown, Percent, Users, ShoppingCart } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Percent, Users, ShoppingCart, UserX, Activity } from "lucide-react";
 import { KPICard } from "@/components/KPICard";
 import { ChartCard } from "@/components/ChartCard";
 import { FilterBadges } from "@/components/FilterBadges";
@@ -8,54 +8,63 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 
-const allRevenueData = [
-  { month: "Jan", receita: 450000, lucro: 67500, margem: 15 },
-  { month: "Fev", receita: 520000, lucro: 83200, margem: 16 },
-  { month: "Mar", receita: 480000, lucro: 67200, margem: 14 },
-  { month: "Abr", receita: 610000, lucro: 103700, margem: 17 },
-  { month: "Mai", receita: 550000, lucro: 82500, margem: 15 },
-  { month: "Jun", receita: 670000, lucro: 120600, margem: 18 },
+const allMRRData = [
+  { month: "Jan", mrr: 850000, novos: 45000, churn: -12000, expansao: 15000 },
+  { month: "Fev", mrr: 898000, novos: 52000, churn: -9000, expansao: 18000 },
+  { month: "Mar", mrr: 945000, novos: 48000, churn: -11000, expansao: 22000 },
+  { month: "Abr", mrr: 1004000, novos: 61000, churn: -8000, expansao: 25000 },
+  { month: "Mai", mrr: 1057000, novos: 55000, churn: -10000, expansao: 28000 },
+  { month: "Jun", mrr: 1125000, novos: 67000, churn: -7500, expansao: 31000 },
+];
+
+const receitaPorColaborador = [
+  { month: "Jan", receita: 8500 },
+  { month: "Fev", receita: 8980 },
+  { month: "Mar", receita: 9450 },
+  { month: "Abr", receita: 10040 },
+  { month: "Mai", receita: 10570 },
+  { month: "Jun", receita: 11250 },
 ];
 
 const kpiMetrics = [
   { 
-    label: "LTV (Lifetime Value)", 
-    value: "R$ 12.450", 
-    previous: "R$ 11.200",
-    change: 11.2,
-    period: "vs mês anterior"
+    label: "MRR Atual", 
+    value: "R$ 1.125M", 
+    previous: "R$ 1.057M",
+    change: 6.4,
+    period: "+R$ 68K vs mês anterior"
   },
   { 
-    label: "CAC (Custo Aquisição)", 
-    value: "R$ 2.850", 
-    previous: "R$ 3.100",
-    change: -8.1,
-    period: "vs mês anterior"
+    label: "Churn Rate", 
+    value: "0.67%", 
+    previous: "0.95%",
+    change: -29.5,
+    period: "Meta: < 2% (✓ Atingido)"
   },
   { 
     label: "LTV/CAC Ratio", 
     value: "4.37x", 
     previous: "3.61x",
     change: 21.1,
-    period: "Ideal: > 3.0x"
+    period: "Ideal: > 3.0x (✓ Saudável)"
   },
   { 
-    label: "Ticket Médio", 
-    value: "R$ 458", 
-    previous: "R$ 425",
-    change: 7.8,
-    period: "vs mês anterior"
+    label: "Receita/Colaborador", 
+    value: "R$ 11.250", 
+    previous: "R$ 10.570",
+    change: 6.4,
+    period: "100 colaboradores"
   },
 ];
 
 export default function Overview() {
   const { filters, setFilter } = useFilters();
 
-  const revenueData = filters.month
-    ? allRevenueData.filter((d) => d.month === filters.month)
-    : allRevenueData;
+  const mrrData = filters.month
+    ? allMRRData.filter((d) => d.month === filters.month)
+    : allMRRData;
 
-  const handleRevenueClick = (data: any) => {
+  const handleMRRClick = (data: any) => {
     if (data && data.activeLabel) {
       setFilter("month", filters.month === data.activeLabel ? undefined : data.activeLabel);
       toast.success(
@@ -66,50 +75,52 @@ export default function Overview() {
     }
   };
 
-  const totalReceita = revenueData.reduce((acc, curr) => acc + curr.receita, 0);
-  const totalLucro = revenueData.reduce((acc, curr) => acc + curr.lucro, 0);
-  const margemMedia = ((totalLucro / totalReceita) * 100).toFixed(1);
+  const mrrAtual = mrrData[mrrData.length - 1]?.mrr || 0;
+  const mrrAnterior = mrrData[mrrData.length - 2]?.mrr || 0;
+  const crescimentoMRR = mrrAnterior ? (((mrrAtual - mrrAnterior) / mrrAnterior) * 100).toFixed(1) : "0";
 
   return (
     <div className="p-8 space-y-8 animate-fade-in">
       <div>
         <h1 className="text-4xl font-bold text-foreground mb-2">Visão Executiva</h1>
-        <p className="text-muted-foreground">Principais indicadores financeiros e operacionais</p>
+        <p className="text-muted-foreground">Dashboard do CEO - Principais indicadores do Grupo FN</p>
       </div>
 
       <FilterBadges />
 
+      {/* KPIs Principais do CEO */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <KPICard
-          title="Receita Total"
-          value={`R$ ${(totalReceita / 1000).toFixed(0)}K`}
-          change={12.5}
+          title="MRR - Receita Recorrente"
+          value={`R$ ${(mrrAtual / 1000).toFixed(0)}K`}
+          change={Number(crescimentoMRR)}
           icon={DollarSign}
           delay={100}
         />
         <KPICard
-          title="Lucro Líquido"
-          value={`R$ ${(totalLucro / 1000).toFixed(0)}K`}
-          change={18.3}
-          icon={TrendingUp}
+          title="Clientes Ativos"
+          value="1.542"
+          change={2.8}
+          icon={Users}
           delay={200}
         />
         <KPICard
-          title="Margem Líquida"
-          value={`${margemMedia}%`}
-          change={2.1}
-          icon={Percent}
+          title="Churn Rate (Taxa Cancelamento)"
+          value="0.67%"
+          change={-29.5}
+          icon={UserX}
           delay={300}
         />
         <KPICard
-          title="Clientes Ativos"
-          value="2.845"
-          change={8.2}
-          icon={Users}
+          title="Margem EBITDA"
+          value="18.5%"
+          change={2.3}
+          icon={Percent}
           delay={400}
         />
       </div>
 
+      {/* Métricas Detalhadas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
         {kpiMetrics.map((metric, index) => (
           <Card
@@ -122,7 +133,9 @@ export default function Overview() {
               <p className="text-2xl font-bold text-foreground">{metric.value}</p>
               <div
                 className={`flex items-center text-xs font-medium ${
-                  metric.change >= 0 ? "text-success" : "text-destructive"
+                  metric.change >= 0 && !metric.label.includes("Churn") ? "text-success" : 
+                  metric.change < 0 && metric.label.includes("Churn") ? "text-success" :
+                  "text-destructive"
                 }`}
               >
                 {metric.change >= 0 ? (
@@ -139,66 +152,102 @@ export default function Overview() {
         ))}
       </div>
 
+      {/* Gráficos Principais */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard title="Receita & Lucro Mensal" delay={900}>
+        <ChartCard title="Evolução do MRR - Receita Recorrente Mensal" delay={900}>
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={revenueData} onClick={handleRevenueClick}>
+            <AreaChart data={mrrData} onClick={handleMRRClick}>
               <defs>
-                <linearGradient id="colorReceita" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="colorMRR" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="hsl(217 91% 60%)" stopOpacity={0.3} />
                   <stop offset="95%" stopColor="hsl(217 91% 60%)" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="colorLucro" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(142 76% 36%)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(142 76% 36%)" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
               <YAxis stroke="hsl(var(--muted-foreground))" />
               <Tooltip content={<CustomTooltip valuePrefix="R$ " />} />
-              <Legend />
               <Area
                 type="monotone"
-                dataKey="receita"
+                dataKey="mrr"
                 stroke="hsl(217 91% 60%)"
-                strokeWidth={2}
-                fill="url(#colorReceita)"
-                name="Receita"
-                cursor="pointer"
-              />
-              <Area
-                type="monotone"
-                dataKey="lucro"
-                stroke="hsl(142 76% 36%)"
-                strokeWidth={2}
-                fill="url(#colorLucro)"
-                name="Lucro"
+                strokeWidth={3}
+                fill="url(#colorMRR)"
+                name="MRR Total"
                 cursor="pointer"
               />
             </AreaChart>
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="Evolução da Margem (%)" delay={1000}>
+        <ChartCard title="Composição do Crescimento MRR" delay={1000}>
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={revenueData} onClick={handleRevenueClick}>
+            <BarChart data={mrrData} onClick={handleMRRClick}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-              <YAxis stroke="hsl(var(--muted-foreground))" domain={[0, 20]} />
-              <Tooltip content={<CustomTooltip />} />
+              <YAxis stroke="hsl(var(--muted-foreground))" />
+              <Tooltip content={<CustomTooltip valuePrefix="R$ " />} />
+              <Legend />
+              <Bar dataKey="novos" fill="hsl(142 76% 36%)" name="Novos Clientes" stackId="a" cursor="pointer" />
+              <Bar dataKey="expansao" fill="hsl(217 91% 60%)" name="Expansão" stackId="a" cursor="pointer" />
+              <Bar dataKey="churn" fill="hsl(0 84% 60%)" name="Churn" stackId="a" cursor="pointer" />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        <ChartCard title="Receita por Colaborador (Eficiência Operacional)" delay={1100}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={receitaPorColaborador}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
+              <YAxis stroke="hsl(var(--muted-foreground))" />
+              <Tooltip content={<CustomTooltip valuePrefix="R$ " />} />
               <Line
                 type="monotone"
-                dataKey="margem"
+                dataKey="receita"
                 stroke="hsl(142 76% 36%)"
                 strokeWidth={3}
-                name="Margem %"
+                name="Receita/Colab"
                 cursor="pointer"
-                dot={{ fill: "hsl(142 76% 36%)", r: 4 }}
+                dot={{ fill: "hsl(142 76% 36%)", r: 5 }}
               />
             </LineChart>
           </ResponsiveContainer>
         </ChartCard>
+
+        <Card className="p-6 gradient-card border-border shadow-soft">
+          <h3 className="text-lg font-semibold text-foreground mb-6">KPIs Críticos - Atenção!</h3>
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 p-3 bg-success/10 rounded-lg">
+              <Activity className="h-5 w-5 text-success mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-foreground">Churn Rate Saudável</p>
+                <p className="text-xs text-muted-foreground">0.67% - Abaixo da meta de 2%</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-3 bg-success/10 rounded-lg">
+              <Activity className="h-5 w-5 text-success mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-foreground">LTV/CAC Excelente</p>
+                <p className="text-xs text-muted-foreground">4.37x - Muito acima do ideal (3.0x)</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-3 bg-primary/10 rounded-lg">
+              <Activity className="h-5 w-5 text-primary mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-foreground">Crescimento MRR</p>
+                <p className="text-xs text-muted-foreground">+6.4% MoM - Ritmo sustentável</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-3 bg-success/10 rounded-lg">
+              <Activity className="h-5 w-5 text-success mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-foreground">Base de Clientes</p>
+                <p className="text-xs text-muted-foreground">1.542 ativos - Meta: 1.500+ (✓)</p>
+              </div>
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   );

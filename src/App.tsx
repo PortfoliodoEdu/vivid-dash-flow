@@ -6,10 +6,13 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { FilterProvider } from "./contexts/FilterContext";
 import { DashboardLayout } from "./components/DashboardLayout";
 import Overview from "./pages/Overview";
-import Financial from "./pages/Financial";
+import Clients from "./pages/Clients";
 import Sales from "./pages/Sales";
+import Services from "./pages/Services";
 import Marketing from "./pages/Marketing";
+import Financial from "./pages/Financial";
 import Cashflow from "./pages/Cashflow";
+import HR from "./pages/HR";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,10 +27,13 @@ const App = () => (
           <DashboardLayout>
             <Routes>
               <Route path="/" element={<Overview />} />
-              <Route path="/financial" element={<Financial />} />
+              <Route path="/clients" element={<Clients />} />
               <Route path="/sales" element={<Sales />} />
+              <Route path="/services" element={<Services />} />
               <Route path="/marketing" element={<Marketing />} />
+              <Route path="/financial" element={<Financial />} />
               <Route path="/cashflow" element={<Cashflow />} />
+              <Route path="/hr" element={<HR />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </DashboardLayout>
