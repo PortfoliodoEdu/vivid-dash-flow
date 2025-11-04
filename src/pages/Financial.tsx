@@ -4,35 +4,81 @@ import { CustomTooltip } from "@/components/CustomTooltip";
 import { useFilters } from "@/contexts/FilterContext";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { toast } from "sonner";
+import { Card } from "@/components/ui/card";
 
-const allProfitData = [
-  { month: "Jan", revenue: 45000, expenses: 32000, profit: 13000 },
-  { month: "Fev", revenue: 52000, expenses: 35000, profit: 17000 },
-  { month: "Mar", revenue: 48000, expenses: 33000, profit: 15000 },
-  { month: "Abr", revenue: 61000, expenses: 38000, profit: 23000 },
-  { month: "Mai", revenue: 55000, expenses: 36000, profit: 19000 },
-  { month: "Jun", revenue: 67000, expenses: 40000, profit: 27000 },
+const allDREData = [
+  { 
+    month: "Jan", 
+    receitaBruta: 450000,
+    impostos: 60750,
+    receitaLiquida: 389250,
+    custos: 247425,
+    despesas: 74178,
+    lucro: 67647
+  },
+  { 
+    month: "Fev", 
+    receitaBruta: 520000,
+    impostos: 70200,
+    receitaLiquida: 449800,
+    custos: 269892,
+    despesas: 89964,
+    lucro: 89944
+  },
+  { 
+    month: "Mar", 
+    receitaBruta: 480000,
+    impostos: 64800,
+    receitaLiquida: 415200,
+    custos: 274032,
+    despesas: 74952,
+    lucro: 66216
+  },
+  { 
+    month: "Abr", 
+    receitaBruta: 610000,
+    impostos: 82350,
+    receitaLiquida: 527650,
+    custos: 316590,
+    despesas: 105530,
+    lucro: 105530
+  },
+  { 
+    month: "Mai", 
+    receitaBruta: 550000,
+    impostos: 74250,
+    receitaLiquida: 475750,
+    custos: 309988,
+    despesas: 85748,
+    lucro: 80014
+  },
+  { 
+    month: "Jun", 
+    receitaBruta: 670000,
+    impostos: 90450,
+    receitaLiquida: 579550,
+    custos: 347730,
+    despesas: 115910,
+    lucro: 115910
+  },
 ];
 
-const allBusinessUnits = [
-  { unit: "Unidade A", value: 28000 },
-  { unit: "Unidade B", value: 21000 },
-  { unit: "Unidade C", value: 18000 },
-  { unit: "Unidade D", value: 15000 },
+const allIndicadores = [
+  { indicador: "Liquidez Corrente", valor: 2.8 },
+  { indicador: "Liquidez Seca", valor: 2.1 },
+  { indicador: "Endividamento", valor: 35 },
+  { indicador: "ROE (%)", valor: 18.5 },
+  { indicador: "ROA (%)", valor: 12.3 },
 ];
 
 export default function Financial() {
   const { filters, setFilter } = useFilters();
 
-  const profitData = filters.month
-    ? allProfitData.filter((d) => d.month === filters.month)
-    : allProfitData;
+  const dreData = filters.month
+    ? allDREData.filter((d) => d.month === filters.month)
+    : allDREData;
 
-  const businessUnits = filters.businessUnit
-    ? allBusinessUnits.filter((d) => d.unit === filters.businessUnit)
-    : allBusinessUnits;
-
-  const handleProfitClick = (data: any) => {
+  const handleDREClick = (data: any) => {
     if (data && data.activeLabel) {
       setFilter("month", filters.month === data.activeLabel ? undefined : data.activeLabel);
       toast.success(
@@ -43,80 +89,124 @@ export default function Financial() {
     }
   };
 
-  const handleUnitClick = (data: any) => {
-    if (data && data.activeLabel) {
-      setFilter("businessUnit", filters.businessUnit === data.activeLabel ? undefined : data.activeLabel);
-      toast.success(
-        filters.businessUnit === data.activeLabel
-          ? "Filtro removido"
-          : `Filtrado por: ${data.activeLabel}`
-      );
-    }
-  };
+  const totalReceita = dreData.reduce((acc, curr) => acc + curr.receitaLiquida, 0);
+  const totalCustos = dreData.reduce((acc, curr) => acc + curr.custos, 0);
+  const totalDespesas = dreData.reduce((acc, curr) => acc + curr.despesas, 0);
+  const totalLucro = dreData.reduce((acc, curr) => acc + curr.lucro, 0);
 
   return (
     <div className="p-8 space-y-8 animate-fade-in">
       <div>
-        <h1 className="text-4xl font-bold text-foreground mb-2">Desempenho Financeiro</h1>
-        <p className="text-muted-foreground">Acompanhe receita, despesas e lucratividade</p>
+        <h1 className="text-4xl font-bold text-foreground mb-2">Financeiro & DRE</h1>
+        <p className="text-muted-foreground">Demonstrativo de Resultado e análise contábil</p>
       </div>
 
       <FilterBadges />
 
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <Card className="p-5 gradient-card border-border shadow-soft">
+          <h3 className="text-sm font-medium text-muted-foreground mb-2">Receita Líquida</h3>
+          <p className="text-2xl font-bold text-foreground">
+            R$ {(totalReceita / 1000).toFixed(0)}K
+          </p>
+          <p className="text-xs text-success mt-1">100%</p>
+        </Card>
+        <Card className="p-5 gradient-card border-border shadow-soft">
+          <h3 className="text-sm font-medium text-muted-foreground mb-2">Custos</h3>
+          <p className="text-2xl font-bold text-foreground">
+            R$ {(totalCustos / 1000).toFixed(0)}K
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {((totalCustos / totalReceita) * 100).toFixed(1)}%
+          </p>
+        </Card>
+        <Card className="p-5 gradient-card border-border shadow-soft">
+          <h3 className="text-sm font-medium text-muted-foreground mb-2">Despesas</h3>
+          <p className="text-2xl font-bold text-foreground">
+            R$ {(totalDespesas / 1000).toFixed(0)}K
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {((totalDespesas / totalReceita) * 100).toFixed(1)}%
+          </p>
+        </Card>
+        <Card className="p-5 gradient-card border-border shadow-soft">
+          <h3 className="text-sm font-medium text-muted-foreground mb-2">Lucro Líquido</h3>
+          <p className="text-2xl font-bold text-success">
+            R$ {(totalLucro / 1000).toFixed(0)}K
+          </p>
+          <p className="text-xs text-success mt-1">
+            {((totalLucro / totalReceita) * 100).toFixed(1)}%
+          </p>
+        </Card>
+      </div>
+
       <div className="grid grid-cols-1 gap-6">
-        <ChartCard title="Receita, Despesas & Lucro">
+        <ChartCard title="DRE - Demonstrativo de Resultado">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={profitData} onClick={handleProfitClick}>
+            <BarChart data={dreData} onClick={handleDREClick}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
               <YAxis stroke="hsl(var(--muted-foreground))" />
               <Tooltip content={<CustomTooltip valuePrefix="R$ " />} />
               <Legend />
-              <Line
-                type="monotone"
-                dataKey="revenue"
-                stroke="hsl(217 91% 60%)"
-                strokeWidth={2}
-                name="Receita"
-                cursor="pointer"
-              />
-              <Line
-                type="monotone"
-                dataKey="expenses"
-                stroke="hsl(0 84% 60%)"
-                strokeWidth={2}
-                name="Despesas"
-                cursor="pointer"
-              />
-              <Line
-                type="monotone"
-                dataKey="profit"
-                stroke="hsl(142 76% 36%)"
-                strokeWidth={2}
-                name="Lucro"
-                cursor="pointer"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </ChartCard>
-
-        <ChartCard title="Receita por Unidade de Negócio">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={businessUnits} layout="vertical" onClick={handleUnitClick}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis type="number" stroke="hsl(var(--muted-foreground))" />
-              <YAxis dataKey="unit" type="category" stroke="hsl(var(--muted-foreground))" />
-              <Tooltip content={<CustomTooltip valuePrefix="R$ " />} />
-              <Bar
-                dataKey="value"
-                fill="hsl(217 91% 60%)"
-                radius={[0, 8, 8, 0]}
-                name="Receita"
-                cursor="pointer"
-              />
+              <Bar dataKey="receitaLiquida" fill="hsl(217 91% 60%)" name="Receita Líquida" cursor="pointer" />
+              <Bar dataKey="custos" fill="hsl(0 84% 60%)" name="Custos" cursor="pointer" />
+              <Bar dataKey="despesas" fill="hsl(38 92% 50%)" name="Despesas" cursor="pointer" />
+              <Bar dataKey="lucro" fill="hsl(142 76% 36%)" name="Lucro" cursor="pointer" />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ChartCard title="Evolução do Resultado">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={dreData} onClick={handleDREClick}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
+                <YAxis stroke="hsl(var(--muted-foreground))" />
+                <Tooltip content={<CustomTooltip valuePrefix="R$ " />} />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="receitaLiquida"
+                  stroke="hsl(217 91% 60%)"
+                  strokeWidth={2}
+                  name="Receita"
+                  cursor="pointer"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="lucro"
+                  stroke="hsl(142 76% 36%)"
+                  strokeWidth={2}
+                  name="Lucro"
+                  cursor="pointer"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartCard>
+
+          <Card className="p-6 gradient-card border-border shadow-soft">
+            <h3 className="text-lg font-semibold text-foreground mb-6">Indicadores Financeiros</h3>
+            <div className="space-y-4">
+              {allIndicadores.map((item) => (
+                <div key={item.indicador} className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">{item.indicador}</span>
+                  <span className="text-lg font-bold text-foreground">
+                    {item.indicador.includes("%") ? `${item.valor}%` : item.valor}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 pt-4 border-t border-border">
+              <p className="text-xs text-muted-foreground">
+                <strong>Liquidez Corrente:</strong> Capacidade de pagar dívidas de curto prazo<br/>
+                <strong>ROE:</strong> Retorno sobre o patrimônio líquido<br/>
+                <strong>ROA:</strong> Retorno sobre ativos totais
+              </p>
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   );

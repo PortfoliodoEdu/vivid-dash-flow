@@ -15,10 +15,10 @@ import {
 
 const menuItems = [
   { title: "Visão Executiva", url: "/", icon: LayoutDashboard },
-  { title: "Desempenho Financeiro", url: "/financial", icon: TrendingUp },
-  { title: "Vendas & Clientes", url: "/sales", icon: Users },
-  { title: "Operações", url: "/operations", icon: Settings },
-  { title: "Previsões & Metas", url: "/forecasts", icon: Target },
+  { title: "Financeiro & DRE", url: "/financial", icon: TrendingUp },
+  { title: "Vendas & LTV/CAC", url: "/sales", icon: Users },
+  { title: "Marketing & ROI", url: "/marketing", icon: Target },
+  { title: "Fluxo de Caixa", url: "/cashflow", icon: Settings },
 ];
 
 export function DashboardSidebar() {

@@ -8,8 +8,8 @@ import { DashboardLayout } from "./components/DashboardLayout";
 import Overview from "./pages/Overview";
 import Financial from "./pages/Financial";
 import Sales from "./pages/Sales";
-import Operations from "./pages/Operations";
-import Forecasts from "./pages/Forecasts";
+import Marketing from "./pages/Marketing";
+import Cashflow from "./pages/Cashflow";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,8 +26,8 @@ const App = () => (
               <Route path="/" element={<Overview />} />
               <Route path="/financial" element={<Financial />} />
               <Route path="/sales" element={<Sales />} />
-              <Route path="/operations" element={<Operations />} />
-              <Route path="/forecasts" element={<Forecasts />} />
+              <Route path="/marketing" element={<Marketing />} />
+              <Route path="/cashflow" element={<Cashflow />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </DashboardLayout>
