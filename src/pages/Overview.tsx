@@ -1,13 +1,18 @@
-import { DollarSign, TrendingUp, TrendingDown, Percent, Users, ShoppingCart, UserX, Activity } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Percent, Users, ShoppingCart, UserX, Activity, Info } from "lucide-react";
 import { KPICard } from "@/components/KPICard";
 import { ExpandableChart } from "@/components/ExpandableChart";
 import { FilterBadges } from "@/components/FilterBadges";
-import { FilterButtons } from "@/components/FilterButtons";
 import { CustomTooltip } from "@/components/CustomTooltip";
 import { useFilters } from "@/contexts/FilterContext";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Legend } from "recharts";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
+import {
+  Tooltip as UITooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const allMRRData = [
   { month: "Jan", mrr: 850000, novos: 45000, churn: -12000, expansao: 15000 },
@@ -33,28 +38,32 @@ const kpiMetrics = [
     value: "R$ 1.125M", 
     previous: "R$ 1.057M",
     change: 6.4,
-    period: "+R$ 68K vs mês anterior"
+    period: "+R$ 68K vs mês anterior",
+    tooltip: "MRR (Monthly Recurring Revenue) é a receita recorrente mensal. Métrica fundamental para negócios baseados em assinatura, mostra a previsibilidade de receita."
   },
   { 
     label: "Churn Rate", 
     value: "0.67%", 
     previous: "0.95%",
     change: -29.5,
-    period: "Meta: < 2% (✓ Atingido)"
+    period: "Meta: < 2% (✓ Atingido)",
+    tooltip: "Taxa de cancelamento de clientes. Quanto menor, melhor. Indica a capacidade de reter clientes e a qualidade do serviço prestado."
   },
   { 
     label: "LTV/CAC Ratio", 
     value: "4.37x", 
     previous: "3.61x",
     change: 21.1,
-    period: "Ideal: > 3.0x (✓ Saudável)"
+    period: "Ideal: > 3.0x (✓ Saudável)",
+    tooltip: "Relação entre Lifetime Value (valor que o cliente gera) e Customer Acquisition Cost (custo para adquirir). Acima de 3x indica negócio saudável e escalável."
   },
   { 
     label: "Receita/Colaborador", 
     value: "R$ 11.250", 
     previous: "R$ 10.570",
     change: 6.4,
-    period: "100 colaboradores"
+    period: "100 colaboradores",
+    tooltip: "Produtividade da equipe medida pela receita gerada por cada colaborador. Quanto maior, mais eficiente a operação."
   },
 ];
 
@@ -80,21 +89,11 @@ export default function Overview() {
   const mrrAnterior = mrrData[mrrData.length - 2]?.mrr || 0;
   const crescimentoMRR = mrrAnterior ? (((mrrAtual - mrrAnterior) / mrrAnterior) * 100).toFixed(1) : "0";
 
-  const monthFilters = allMRRData.map(d => ({ label: d.month, value: d.month }));
-
   return (
     <div className="p-8 space-y-8 animate-fade-in">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-4xl font-bold text-foreground mb-2">Visão Executiva</h1>
-          <p className="text-muted-foreground">Dashboard do CEO - Principais indicadores do Grupo FN</p>
-        </div>
-        <FilterButtons
-          filters={monthFilters}
-          currentValue={filters.month}
-          onValueChange={(val) => setFilter("month", val || undefined)}
-          placeholder="Selecione o mês"
-        />
+      <div>
+        <h1 className="text-4xl font-bold text-foreground mb-2">Visão Executiva</h1>
+        <p className="text-muted-foreground">Dashboard do CEO - Principais indicadores do Grupo FN</p>
       </div>
 
       <FilterBadges />
@@ -139,7 +138,19 @@ export default function Overview() {
             className="p-5 gradient-card border-border shadow-soft hover:shadow-hover transition-all duration-300 animate-slide-up"
             style={{ animationDelay: `${500 + index * 100}ms` }}
           >
-            <h3 className="text-xs font-medium text-muted-foreground mb-3 break-words">{metric.label}</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-medium text-muted-foreground break-words">{metric.label}</h3>
+              <TooltipProvider>
+                <UITooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-muted-foreground cursor-help hover:text-primary transition-colors flex-shrink-0" />
+                  </TooltipTrigger>
+                  <TooltipContent side="left" className="max-w-xs">
+                    <p className="text-sm">{metric.tooltip}</p>
+                  </TooltipContent>
+                </UITooltip>
+              </TooltipProvider>
+            </div>
             <div className="flex items-end justify-between mb-2">
               <p className="text-2xl font-bold text-foreground break-words">{metric.value}</p>
               <div

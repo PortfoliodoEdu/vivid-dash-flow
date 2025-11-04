@@ -48,10 +48,10 @@ export const ExpandableChart = ({ title, children, delay = 0, description }: Exp
           <Button
             variant="ghost"
             size="icon"
-            className="absolute bottom-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm hover:bg-primary/10"
+            className="absolute bottom-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity bg-primary/20 backdrop-blur-sm hover:bg-primary/30 border border-primary/40"
             onClick={() => setIsExpanded(true)}
           >
-            <Maximize2 className="h-4 w-4" />
+            <Maximize2 className="h-4 w-4 text-primary" />
           </Button>
         </div>
       </Card>
