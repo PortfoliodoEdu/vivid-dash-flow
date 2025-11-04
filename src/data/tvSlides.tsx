@@ -82,20 +82,20 @@ const TVKPICard = ({
   icon: any; 
   trend: "up" | "down";
 }) => (
-  <Card className="p-6 gradient-card border-border shadow-medium">
-    <div className="flex items-center justify-between mb-3">
-      <h3 className="text-lg font-medium text-muted-foreground">{label}</h3>
-      <Icon className="h-8 w-8 text-primary" />
+  <Card className="p-4 gradient-card border-border shadow-medium">
+    <div className="flex items-center justify-between mb-2">
+      <h3 className="text-sm font-medium text-muted-foreground">{label}</h3>
+      <Icon className="h-6 w-6 text-primary" />
     </div>
     <div className="flex items-end justify-between">
-      <p className="text-4xl font-bold text-foreground">{value}</p>
-      <div className={`flex items-center text-lg font-medium ${
+      <p className="text-3xl font-bold text-foreground">{value}</p>
+      <div className={`flex items-center text-base font-medium ${
         trend === "up" ? "text-success" : "text-destructive"
       }`}>
         {trend === "up" ? (
-          <TrendingUp className="h-5 w-5 mr-1" />
+          <TrendingUp className="h-4 w-4 mr-1" />
         ) : (
-          <TrendingDown className="h-5 w-5 mr-1" />
+          <TrendingDown className="h-4 w-4 mr-1" />
         )}
         {change}
       </div>
@@ -109,8 +109,8 @@ export const tvSlides = [
     title: "Visão Executiva",
     subtitle: "Principais Indicadores do Grupo FN",
     content: (
-      <div className="space-y-6 h-full flex flex-col">
-        <div className="grid grid-cols-4 gap-6">
+      <div className="space-y-4 h-full flex flex-col">
+        <div className="grid grid-cols-4 gap-4">
           <TVKPICard
             label="MRR Atual"
             value="R$ 1.125M"
@@ -140,10 +140,10 @@ export const tvSlides = [
             trend="up"
           />
         </div>
-        <div className="flex-1 grid grid-cols-2 gap-6">
-          <Card className="p-6 gradient-card border-border shadow-soft">
-            <h3 className="text-xl font-semibold text-foreground mb-4">Evolução do MRR</h3>
-            <ResponsiveContainer width="100%" height="90%">
+        <div className="flex-1 grid grid-cols-2 gap-4 min-h-0">
+          <Card className="p-4 gradient-card border-border shadow-soft">
+            <h3 className="text-lg font-semibold text-foreground mb-2">Evolução do MRR</h3>
+            <ResponsiveContainer width="100%" height="85%">
               <AreaChart data={mrrData}>
                 <defs>
                   <linearGradient id="colorMRR" x1="0" y1="0" x2="0" y2="1">
@@ -166,9 +166,9 @@ export const tvSlides = [
               </AreaChart>
             </ResponsiveContainer>
           </Card>
-          <Card className="p-6 gradient-card border-border shadow-soft">
-            <h3 className="text-xl font-semibold text-foreground mb-4">Composição do Crescimento MRR</h3>
-            <ResponsiveContainer width="100%" height="90%">
+          <Card className="p-4 gradient-card border-border shadow-soft">
+            <h3 className="text-lg font-semibold text-foreground mb-2">Composição do Crescimento MRR</h3>
+            <ResponsiveContainer width="100%" height="85%">
               <BarChart data={mrrComposicao}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                 <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
@@ -190,8 +190,8 @@ export const tvSlides = [
     title: "Comercial & Vendas",
     subtitle: "Performance do Time e Metas",
     content: (
-      <div className="space-y-6 h-full flex flex-col">
-        <div className="grid grid-cols-4 gap-6">
+      <div className="space-y-4 h-full flex flex-col">
+        <div className="grid grid-cols-4 gap-4">
           <TVKPICard
             label="Vendas do Mês"
             value="148"
@@ -221,10 +221,10 @@ export const tvSlides = [
             trend="up"
           />
         </div>
-        <div className="flex-1 grid grid-cols-2 gap-6">
-          <Card className="p-6 gradient-card border-border shadow-soft">
-            <h3 className="text-xl font-semibold text-foreground mb-4">Ranking de Vendedores</h3>
-            <ResponsiveContainer width="100%" height="90%">
+        <div className="flex-1 grid grid-cols-2 gap-4 min-h-0">
+          <Card className="p-4 gradient-card border-border shadow-soft">
+            <h3 className="text-lg font-semibold text-foreground mb-2">Ranking de Vendedores</h3>
+            <ResponsiveContainer width="100%" height="85%">
               <BarChart data={vendedoresData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                 <XAxis type="number" stroke="hsl(var(--muted-foreground))" />
@@ -236,9 +236,9 @@ export const tvSlides = [
               </BarChart>
             </ResponsiveContainer>
           </Card>
-          <Card className="p-6 gradient-card border-border shadow-soft">
-            <h3 className="text-xl font-semibold text-foreground mb-4">Meta vs Realizado</h3>
-            <ResponsiveContainer width="100%" height="90%">
+          <Card className="p-4 gradient-card border-border shadow-soft">
+            <h3 className="text-lg font-semibold text-foreground mb-2">Meta vs Realizado</h3>
+            <ResponsiveContainer width="100%" height="85%">
               <LineChart data={metasTime}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                 <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
@@ -274,8 +274,8 @@ export const tvSlides = [
     title: "Marketing & ROI",
     subtitle: "Investimento e Retorno",
     content: (
-      <div className="space-y-6 h-full flex flex-col">
-        <div className="grid grid-cols-4 gap-6">
+      <div className="space-y-4 h-full flex flex-col">
+        <div className="grid grid-cols-4 gap-4">
           <TVKPICard
             label="Investimento"
             value="R$ 131K"
@@ -305,10 +305,10 @@ export const tvSlides = [
             trend="up"
           />
         </div>
-        <div className="flex-1 grid grid-cols-2 gap-6">
-          <Card className="p-6 gradient-card border-border shadow-soft">
-            <h3 className="text-xl font-semibold text-foreground mb-4">Performance por Canal</h3>
-            <ResponsiveContainer width="100%" height="90%">
+        <div className="flex-1 grid grid-cols-2 gap-4 min-h-0">
+          <Card className="p-4 gradient-card border-border shadow-soft">
+            <h3 className="text-lg font-semibold text-foreground mb-2">Performance por Canal</h3>
+            <ResponsiveContainer width="100%" height="85%">
               <BarChart data={canalData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="canal" stroke="hsl(var(--muted-foreground))" angle={-15} textAnchor="end" height={80} />
@@ -320,9 +320,9 @@ export const tvSlides = [
               </BarChart>
             </ResponsiveContainer>
           </Card>
-          <Card className="p-6 gradient-card border-border shadow-soft">
-            <h3 className="text-xl font-semibold text-foreground mb-4">ROI Mensal</h3>
-            <ResponsiveContainer width="100%" height="90%">
+          <Card className="p-4 gradient-card border-border shadow-soft">
+            <h3 className="text-lg font-semibold text-foreground mb-2">ROI Mensal</h3>
+            <ResponsiveContainer width="100%" height="85%">
               <LineChart data={roiMensal}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
@@ -357,8 +357,8 @@ export const tvSlides = [
     title: "Fluxo de Caixa",
     subtitle: "Receitas, Despesas e Saldo",
     content: (
-      <div className="space-y-6 h-full flex flex-col">
-        <div className="grid grid-cols-3 gap-6">
+      <div className="space-y-4 h-full flex flex-col">
+        <div className="grid grid-cols-3 gap-4">
           <TVKPICard
             label="Receitas"
             value="R$ 1.125M"
@@ -381,10 +381,10 @@ export const tvSlides = [
             trend="up"
           />
         </div>
-        <div className="flex-1">
-          <Card className="p-6 gradient-card border-border shadow-soft h-full">
-            <h3 className="text-xl font-semibold text-foreground mb-4">Evolução do Fluxo de Caixa</h3>
-            <ResponsiveContainer width="100%" height="90%">
+        <div className="flex-1 min-h-0">
+          <Card className="p-4 gradient-card border-border shadow-soft h-full">
+            <h3 className="text-lg font-semibold text-foreground mb-2">Evolução do Fluxo de Caixa</h3>
+            <ResponsiveContainer width="100%" height="85%">
               <BarChart data={fluxoCaixa}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                 <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />

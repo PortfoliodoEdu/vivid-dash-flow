@@ -64,10 +64,10 @@ export default function TVPresentation() {
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
-                className={`h-2 rounded-full transition-all duration-300 ${
+                className={`h-3 rounded-full transition-all duration-300 ${
                   currentSlide === index
-                    ? "w-12 bg-primary shadow-hover"
-                    : "w-2 bg-sidebar-foreground/30 hover:bg-sidebar-foreground/50"
+                    ? "w-16 bg-primary shadow-hover"
+                    : "w-3 bg-sidebar-foreground/60 hover:bg-sidebar-foreground/80 hover:w-6"
                 }`}
                 aria-label={`Ir para ${slide.title}`}
                 title={slide.title}
