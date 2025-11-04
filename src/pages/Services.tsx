@@ -160,10 +160,16 @@ export default function Services() {
           description="Percentual de lucro sobre a receita para cada linha de serviço. Verde: excelente (≥35%), Azul: bom (25-35%), Amarelo: atenção (<25%)."
         >
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={margemPorServico} layout="vertical">
+            <BarChart data={margemPorServico} layout="vertical" margin={{ left: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis type="number" stroke="hsl(var(--muted-foreground))" domain={[0, 50]} />
-              <YAxis dataKey="servico" type="category" stroke="hsl(var(--muted-foreground))" width={180} />
+              <YAxis 
+                dataKey="servico" 
+                type="category" 
+                stroke="hsl(var(--muted-foreground))" 
+                width={200}
+                tick={{ fontSize: 12 }}
+              />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="margem" name="Margem %" cursor="pointer" fill="hsl(217 91% 60%)">
                 {margemPorServico.map((entry, index) => (
