@@ -14,6 +14,7 @@ import Marketing from "./pages/Marketing";
 import Financial from "./pages/Financial";
 import Cashflow from "./pages/Cashflow";
 import HR from "./pages/HR";
+import TVPresentation from "./pages/TVPresentation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,19 +36,24 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <DashboardLayout isInitialLoad={isInitialLoad}>
-              <Routes>
-                <Route path="/" element={<Overview />} />
-                <Route path="/clients" element={<Clients />} />
-                <Route path="/sales" element={<Sales />} />
-                <Route path="/services" element={<Services />} />
-                <Route path="/marketing" element={<Marketing />} />
-                <Route path="/financial" element={<Financial />} />
-                <Route path="/cashflow" element={<Cashflow />} />
-                <Route path="/hr" element={<HR />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </DashboardLayout>
+            <Routes>
+              <Route path="/tv" element={<TVPresentation />} />
+              <Route path="*" element={
+                <DashboardLayout isInitialLoad={isInitialLoad}>
+                  <Routes>
+                    <Route path="/" element={<Overview />} />
+                    <Route path="/clients" element={<Clients />} />
+                    <Route path="/sales" element={<Sales />} />
+                    <Route path="/services" element={<Services />} />
+                    <Route path="/marketing" element={<Marketing />} />
+                    <Route path="/financial" element={<Financial />} />
+                    <Route path="/cashflow" element={<Cashflow />} />
+                    <Route path="/hr" element={<HR />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </DashboardLayout>
+              } />
+            </Routes>
           </BrowserRouter>
         </FilterProvider>
       </TooltipProvider>
