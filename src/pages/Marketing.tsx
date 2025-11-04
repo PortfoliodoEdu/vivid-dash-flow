@@ -1,4 +1,4 @@
-import { ChartCard } from "@/components/ChartCard";
+import { ExpandableChart } from "@/components/ExpandableChart";
 import { FilterBadges } from "@/components/FilterBadges";
 import { CustomTooltip } from "@/components/CustomTooltip";
 import { useFilters } from "@/contexts/FilterContext";
@@ -91,7 +91,10 @@ export default function Marketing() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard title="Performance por Canal">
+        <ExpandableChart 
+          title="Performance por Canal"
+          description="Comparação entre quantidade de leads gerados e ROI (Retorno sobre Investimento) por canal de marketing. Identifica os canais mais eficientes e lucrativos."
+        >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={canalData} onClick={handleCanalClick}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -103,9 +106,12 @@ export default function Marketing() {
               <Bar dataKey="roi" fill="hsl(142 76% 36%)" name="ROI %" cursor="pointer" />
             </BarChart>
           </ResponsiveContainer>
-        </ChartCard>
+        </ExpandableChart>
 
-        <ChartCard title="ROI Mensal">
+        <ExpandableChart 
+          title="ROI Mensal"
+          description="Acompanhamento mensal do investimento em marketing vs receita gerada. ROI (linha) indica o retorno percentual sobre cada real investido."
+        >
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={roiMensal}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -129,9 +135,12 @@ export default function Marketing() {
               />
             </LineChart>
           </ResponsiveContainer>
-        </ChartCard>
+        </ExpandableChart>
 
-        <ChartCard title="Funil de Conversão">
+        <ExpandableChart 
+          title="Funil de Conversão"
+          description="Jornada do cliente desde visitante até conversão em cliente. Mostra quantos prospects passam por cada etapa e onde há maiores perdas no processo."
+        >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={funnelData} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -145,7 +154,7 @@ export default function Marketing() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </ChartCard>
+        </ExpandableChart>
 
         <Card className="p-6 gradient-card border-border shadow-soft">
           <h3 className="text-lg font-semibold text-foreground mb-6">Métricas de Conversão</h3>

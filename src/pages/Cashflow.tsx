@@ -1,4 +1,4 @@
-import { ChartCard } from "@/components/ChartCard";
+import { ExpandableChart } from "@/components/ExpandableChart";
 import { CustomTooltip } from "@/components/CustomTooltip";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend, AreaChart, Area } from "recharts";
 import { Card } from "@/components/ui/card";
@@ -89,7 +89,10 @@ export default function Cashflow() {
       </div>
 
       <div className="grid grid-cols-1 gap-6">
-        <ChartCard title="Fluxo de Caixa Mensal">
+        <ExpandableChart 
+          title="Fluxo de Caixa Mensal"
+          description="Controle de todas as entradas (receitas) e saídas (pagamentos) de dinheiro. O saldo indica o resultado líquido de caixa do mês. Essencial para gerenciar a liquidez."
+        >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={fluxoCaixaData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -102,10 +105,13 @@ export default function Cashflow() {
               <Bar dataKey="saldo" fill="hsl(217 91% 60%)" name="Saldo" />
             </BarChart>
           </ResponsiveContainer>
-        </ChartCard>
+        </ExpandableChart>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ChartCard title="Categorias de Despesas">
+          <ExpandableChart 
+            title="Categorias de Despesas"
+            description="Distribuição das despesas por categoria. Identifica onde o dinheiro está sendo gasto e ajuda a encontrar oportunidades de redução de custos."
+          >
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={categoriaDespesas} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -115,9 +121,12 @@ export default function Cashflow() {
                 <Bar dataKey="valor" fill="hsl(217 91% 60%)" name="Valor" />
               </BarChart>
             </ResponsiveContainer>
-          </ChartCard>
+          </ExpandableChart>
 
-          <ChartCard title="Projeção de Receita">
+          <ExpandableChart 
+            title="Projeção de Receita"
+            description="Previsão de receitas futuras com dois cenários: Otimista (melhor caso) e Conservador (estimativa prudente). Auxilia no planejamento financeiro estratégico."
+          >
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={previsaoData}>
                 <defs>
@@ -153,7 +162,7 @@ export default function Cashflow() {
                 />
               </AreaChart>
             </ResponsiveContainer>
-          </ChartCard>
+          </ExpandableChart>
         </div>
       </div>
 

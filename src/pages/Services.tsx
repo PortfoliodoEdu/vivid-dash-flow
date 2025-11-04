@@ -1,4 +1,4 @@
-import { ChartCard } from "@/components/ChartCard";
+import { ExpandableChart } from "@/components/ExpandableChart";
 import { Card } from "@/components/ui/card";
 import { CustomTooltip } from "@/components/CustomTooltip";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line, Cell } from "recharts";
@@ -155,7 +155,10 @@ export default function Services() {
 
       {/* Gráficos de Análise */}
       <div className="grid grid-cols-1 gap-6">
-        <ChartCard title="Margem de Lucro por Serviço (%)">
+        <ExpandableChart 
+          title="Margem de Lucro por Serviço (%)"
+          description="Percentual de lucro sobre a receita para cada linha de serviço. Verde: excelente (≥35%), Azul: bom (25-35%), Amarelo: atenção (<25%)."
+        >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={margemPorServico} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -172,10 +175,13 @@ export default function Services() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </ChartCard>
+        </ExpandableChart>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ChartCard title="Receita vs Lucro por Serviço">
+          <ExpandableChart 
+            title="Receita vs Lucro por Serviço"
+            description="Comparação entre a receita total e o lucro líquido gerado por cada serviço. Identifica quais serviços geram mais faturamento e qual a lucratividade real de cada um."
+          >
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={margemPorServico}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -187,9 +193,12 @@ export default function Services() {
                 <Bar dataKey="lucro" fill="hsl(142 76% 36%)" name="Lucro" cursor="pointer" />
               </BarChart>
             </ResponsiveContainer>
-          </ChartCard>
+          </ExpandableChart>
 
-          <ChartCard title="Evolução da Margem - Serviços Principais">
+          <ExpandableChart 
+            title="Evolução da Margem - Serviços Principais"
+            description="Acompanhamento mensal da margem de lucro dos principais serviços do Grupo FN. Mostra tendências de melhoria ou deterioração da rentabilidade ao longo do tempo."
+          >
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={evolucaoMargem}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -203,7 +212,7 @@ export default function Services() {
                 <Line type="monotone" dataKey="certificado" stroke="hsl(38 92% 50%)" strokeWidth={2} name="Certificado" />
               </LineChart>
             </ResponsiveContainer>
-          </ChartCard>
+          </ExpandableChart>
         </div>
       </div>
 

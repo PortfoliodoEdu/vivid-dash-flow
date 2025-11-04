@@ -1,4 +1,4 @@
-import { ChartCard } from "@/components/ChartCard";
+import { ExpandableChart } from "@/components/ExpandableChart";
 import { FilterBadges } from "@/components/FilterBadges";
 import { CustomTooltip } from "@/components/CustomTooltip";
 import { useFilters } from "@/contexts/FilterContext";
@@ -141,7 +141,10 @@ export default function Financial() {
       </div>
 
       <div className="grid grid-cols-1 gap-6">
-        <ChartCard title="DRE - Demonstrativo de Resultado">
+        <ExpandableChart 
+          title="DRE - Demonstrativo de Resultado"
+          description="Demonstrativo de Resultado do Exercício (DRE): análise mensal da Receita Líquida, Custos Operacionais, Despesas Administrativas e Lucro Líquido. Ferramenta essencial para avaliar a saúde financeira."
+        >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={dreData} onClick={handleDREClick}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -155,10 +158,13 @@ export default function Financial() {
               <Bar dataKey="lucro" fill="hsl(142 76% 36%)" name="Lucro" cursor="pointer" />
             </BarChart>
           </ResponsiveContainer>
-        </ChartCard>
+        </ExpandableChart>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ChartCard title="Evolução do Resultado">
+          <ExpandableChart 
+            title="Evolução do Resultado"
+            description="Tendência de crescimento da Receita Líquida e Lucro ao longo dos meses. Permite visualizar a trajetória de rentabilidade e identificar sazonalidades."
+          >
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={dreData} onClick={handleDREClick}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -184,7 +190,7 @@ export default function Financial() {
                 />
               </LineChart>
             </ResponsiveContainer>
-          </ChartCard>
+          </ExpandableChart>
 
           <Card className="p-6 gradient-card border-border shadow-soft">
             <h3 className="text-lg font-semibold text-foreground mb-6">Indicadores Financeiros</h3>

@@ -1,4 +1,4 @@
-import { ChartCard } from "@/components/ChartCard";
+import { ExpandableChart } from "@/components/ExpandableChart";
 import { Card } from "@/components/ui/card";
 import { CustomTooltip } from "@/components/CustomTooltip";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend, PieChart, Pie, Cell } from "recharts";
@@ -99,7 +99,10 @@ export default function HR() {
 
       {/* Gráficos de Análise */}
       <div className="grid grid-cols-1 gap-6">
-        <ChartCard title="Distribuição de Colaboradores por Departamento">
+        <ExpandableChart 
+          title="Distribuição de Colaboradores por Departamento"
+          description="Headcount e custo total de pessoal por departamento. Mostra onde estão concentrados os recursos humanos e seus respectivos custos de folha de pagamento."
+        >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={colaboradoresPorDepartamento} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -111,10 +114,13 @@ export default function HR() {
               <Bar dataKey="custo" fill="hsl(142 76% 36%)" name="Custo (R$)" cursor="pointer" />
             </BarChart>
           </ResponsiveContainer>
-        </ChartCard>
+        </ExpandableChart>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ChartCard title="Produtividade: Receita vs Custo por Colaborador">
+          <ExpandableChart 
+            title="Produtividade: Receita vs Custo por Colaborador"
+            description="Receita gerada por colaborador comparada ao custo médio. Indicador de eficiência: quanto maior a distância entre as linhas, maior a produtividade da equipe."
+          >
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={produtividadeData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -140,9 +146,12 @@ export default function HR() {
                 />
               </LineChart>
             </ResponsiveContainer>
-          </ChartCard>
+          </ExpandableChart>
 
-          <ChartCard title="Movimentação de Pessoal (Turnover)">
+          <ExpandableChart 
+            title="Movimentação de Pessoal (Turnover)"
+            description="Contratações (admissões) vs desligamentos mensais. A taxa de turnover indica a rotatividade da equipe - valores altos podem indicar problemas de retenção ou insatisfação."
+          >
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={turnoverData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -154,9 +163,12 @@ export default function HR() {
                 <Bar dataKey="desligamentos" fill="hsl(0 84% 60%)" name="Desligamentos" cursor="pointer" />
               </BarChart>
             </ResponsiveContainer>
-          </ChartCard>
+          </ExpandableChart>
 
-          <ChartCard title="Status de Vagas (Recrutamento)">
+          <ExpandableChart 
+            title="Status de Vagas (Recrutamento)"
+            description="Situação atual do pipeline de recrutamento: vagas abertas aguardando divulgação, vagas em processo seletivo e vagas fechadas no mês. Monitora a eficiência do RH."
+          >
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -177,7 +189,7 @@ export default function HR() {
                 <Tooltip content={<CustomTooltip />} />
               </PieChart>
             </ResponsiveContainer>
-          </ChartCard>
+          </ExpandableChart>
 
           <Card className="p-6 gradient-card border-border shadow-soft">
             <h3 className="text-lg font-semibold text-foreground mb-6">Indicadores de RH</h3>
