@@ -168,9 +168,9 @@ export default function Clients() {
                 data={multiServicos}
                 cx="50%"
                 cy="50%"
-                labelLine={false}
-                label={({ name, percentual }) => `${name}: ${percentual}%`}
-                outerRadius={100}
+                labelLine={true}
+                label={({ name, percentual }) => `${percentual}%`}
+                outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
                 cursor="pointer"
@@ -179,6 +179,11 @@ export default function Clients() {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
+              <Legend 
+                verticalAlign="bottom" 
+                height={36}
+                formatter={(value, entry: any) => `${value} (${entry.payload.value} clientes)`}
+              />
               <Tooltip content={<CustomTooltip />} />
             </PieChart>
           </ResponsiveContainer>
