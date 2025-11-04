@@ -1,5 +1,4 @@
-import { DollarSign, TrendingUp, TrendingDown, Percent, Users, ShoppingCart, UserX, Activity, Info } from "lucide-react";
-import { KPICard } from "@/components/KPICard";
+import { DollarSign, TrendingUp, TrendingDown, Activity, Info } from "lucide-react";
 import { ExpandableChart } from "@/components/ExpandableChart";
 import { FilterBadges } from "@/components/FilterBadges";
 import { CustomTooltip } from "@/components/CustomTooltip";
@@ -98,39 +97,7 @@ export default function Overview() {
 
       <FilterBadges />
 
-      {/* KPIs Principais do CEO */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KPICard
-          title="MRR - Receita Recorrente"
-          value={`R$ ${(mrrAtual / 1000).toFixed(0)}K`}
-          change={Number(crescimentoMRR)}
-          icon={DollarSign}
-          delay={100}
-        />
-        <KPICard
-          title="Clientes Ativos"
-          value="1.542"
-          change={2.8}
-          icon={Users}
-          delay={200}
-        />
-        <KPICard
-          title="Churn Rate (Taxa Cancelamento)"
-          value="0.67%"
-          change={-29.5}
-          icon={UserX}
-          delay={300}
-        />
-        <KPICard
-          title="Margem EBITDA"
-          value="18.5%"
-          change={2.3}
-          icon={Percent}
-          delay={400}
-        />
-      </div>
-
-      {/* Métricas Detalhadas */}
+      {/* Métricas Principais */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
         {kpiMetrics.map((metric, index) => (
           <Card
