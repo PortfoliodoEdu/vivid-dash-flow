@@ -29,7 +29,7 @@ export default function TVPresentation() {
       </header>
 
       {/* Slides Container */}
-      <main className="flex-1 relative overflow-hidden pb-24">
+      <main className="flex-1 relative overflow-hidden mb-28">
         {tvSlides.map((slide, index) => (
           <TVSlide
             key={slide.id}
