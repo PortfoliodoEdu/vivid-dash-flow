@@ -30,9 +30,9 @@ export function DashboardSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
-      <div className="flex items-center justify-between p-4 border-b border-sidebar-border bg-background">
+      <div className="flex items-center justify-between p-5 border-b border-sidebar-border bg-background">
         {open && (
-          <img src={logoGrupoFN} alt="Grupo FN" className="h-16 w-auto" />
+          <img src={logoGrupoFN} alt="Grupo FN" className="h-20 w-auto" />
         )}
         <SidebarTrigger>
           <Menu className="h-5 w-5" />
