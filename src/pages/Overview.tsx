@@ -1,6 +1,6 @@
 import { DollarSign, TrendingUp, TrendingDown, Percent, Users, ShoppingCart, UserX, Activity } from "lucide-react";
 import { KPICard } from "@/components/KPICard";
-import { ChartCard } from "@/components/ChartCard";
+import { ExpandableChart } from "@/components/ExpandableChart";
 import { FilterBadges } from "@/components/FilterBadges";
 import { FilterButtons } from "@/components/FilterButtons";
 import { CustomTooltip } from "@/components/CustomTooltip";
@@ -165,7 +165,11 @@ export default function Overview() {
 
       {/* Gráficos Principais */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard title="Evolução do MRR - Receita Recorrente Mensal" delay={900}>
+        <ExpandableChart 
+          title="Evolução do MRR - Receita Recorrente Mensal" 
+          delay={900}
+          description="MRR (Monthly Recurring Revenue) é a receita recorrente mensal. Mostra a previsibilidade de faturamento e saúde financeira do negócio."
+        >
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={mrrData} onClick={handleMRRClick}>
               <defs>
@@ -190,9 +194,13 @@ export default function Overview() {
               />
             </AreaChart>
           </ResponsiveContainer>
-        </ChartCard>
+        </ExpandableChart>
 
-        <ChartCard title="Composição do Crescimento MRR" delay={1000}>
+        <ExpandableChart 
+          title="Composição do Crescimento MRR" 
+          delay={1000}
+          description="Detalha como o MRR cresceu: novos clientes (verde), expansão de receita de clientes existentes (azul), e churn/perdas (vermelho)."
+        >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={mrrData} onClick={handleMRRClick}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
@@ -205,9 +213,13 @@ export default function Overview() {
               <Bar dataKey="churn" fill="hsl(0 84% 60%)" name="Churn" stackId="a" cursor="pointer" />
             </BarChart>
           </ResponsiveContainer>
-        </ChartCard>
+        </ExpandableChart>
 
-        <ChartCard title="Receita por Colaborador (Eficiência Operacional)" delay={1100}>
+        <ExpandableChart 
+          title="Receita por Colaborador (Eficiência Operacional)" 
+          delay={1100}
+          description="Mede a produtividade da equipe dividindo a receita total pelo número de colaboradores. Quanto maior, mais eficiente a operação."
+        >
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={receitaPorColaborador}>
               <defs>
@@ -233,7 +245,7 @@ export default function Overview() {
               />
             </LineChart>
           </ResponsiveContainer>
-        </ChartCard>
+        </ExpandableChart>
 
         <Card className="p-6 gradient-card border-border shadow-soft">
           <h3 className="text-lg font-semibold text-foreground mb-6">KPIs Críticos - Atenção!</h3>

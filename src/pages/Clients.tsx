@@ -1,4 +1,4 @@
-import { ChartCard } from "@/components/ChartCard";
+import { ExpandableChart } from "@/components/ExpandableChart";
 import { FilterBadges } from "@/components/FilterBadges";
 import { CustomTooltip } from "@/components/CustomTooltip";
 import { Card } from "@/components/ui/card";
@@ -102,7 +102,10 @@ export default function Clients() {
 
       {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard title="Evolução da Base de Clientes">
+        <ExpandableChart 
+          title="Evolução da Base de Clientes"
+          description="Acompanha o crescimento total de clientes ativos ao longo do tempo. Meta: manter 1.500+ clientes ativos."
+        >
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={baseClientesData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -120,9 +123,12 @@ export default function Clients() {
               />
             </LineChart>
           </ResponsiveContainer>
-        </ChartCard>
+        </ExpandableChart>
 
-        <ChartCard title="Movimentação Mensal de Clientes">
+        <ExpandableChart 
+          title="Movimentação Mensal de Clientes"
+          description="Detalha a dinâmica da base: novos clientes conquistados, reativações de antigos clientes e perdas (churn)."
+        >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={baseClientesData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -135,9 +141,12 @@ export default function Clients() {
               <Bar dataKey="perdidos" fill="hsl(0 84% 60%)" name="Perdidos" cursor="pointer" />
             </BarChart>
           </ResponsiveContainer>
-        </ChartCard>
+        </ExpandableChart>
 
-        <ChartCard title="Clientes por Serviço">
+        <ExpandableChart 
+          title="Clientes por Serviço"
+          description="Distribuição de clientes entre as diferentes linhas de serviço do Grupo FN. Um cliente pode contratar múltiplos serviços."
+        >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={clientesPorServico} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -147,9 +156,12 @@ export default function Clients() {
               <Bar dataKey="clientes" fill="hsl(217 91% 60%)" name="Clientes" cursor="pointer" />
             </BarChart>
           </ResponsiveContainer>
-        </ChartCard>
+        </ExpandableChart>
 
-        <ChartCard title="Cross-sell: Clientes com Múltiplos Serviços">
+        <ExpandableChart 
+          title="Cross-sell: Clientes com Múltiplos Serviços"
+          description="Mostra quantos serviços cada cliente contrata em média. Clientes com mais serviços têm maior valor (LTV) e menor taxa de churn."
+        >
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -170,9 +182,12 @@ export default function Clients() {
               <Tooltip content={<CustomTooltip />} />
             </PieChart>
           </ResponsiveContainer>
-        </ChartCard>
+        </ExpandableChart>
 
-        <ChartCard title="Evolução do NPS (Net Promoter Score)">
+        <ExpandableChart 
+          title="Evolução do NPS (Net Promoter Score)"
+          description="NPS mede a satisfação e lealdade dos clientes (0-100). Scores 75+ indicam zona de excelência com alto nível de recomendação."
+        >
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={npsData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -191,7 +206,7 @@ export default function Clients() {
               />
             </LineChart>
           </ResponsiveContainer>
-        </ChartCard>
+        </ExpandableChart>
 
         <Card className="p-6 gradient-card border-border shadow-soft">
           <h3 className="text-lg font-semibold text-foreground mb-6">Segmentação por Tamanho</h3>

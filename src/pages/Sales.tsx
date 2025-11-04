@@ -1,4 +1,4 @@
-import { ChartCard } from "@/components/ChartCard";
+import { ExpandableChart } from "@/components/ExpandableChart";
 import { FilterBadges } from "@/components/FilterBadges";
 import { FilterButtons } from "@/components/FilterButtons";
 import { CustomTooltip } from "@/components/CustomTooltip";
@@ -8,13 +8,54 @@ import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { TrendingUp, Target, Users, Award } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const vendedoresPerformance = [
-  { vendedor: "Carlos Silva", vendas: 28, meta: 25, conversao: 18.5, ticket: 3200, comissao: 22400 },
-  { vendedor: "Ana Santos", vendas: 32, meta: 30, conversao: 21.2, ticket: 3800, comissao: 30400 },
-  { vendedor: "Pedro Costa", vendas: 24, meta: 25, conversao: 16.8, ticket: 2900, comissao: 17400 },
-  { vendedor: "Mariana Lima", vendas: 35, meta: 30, conversao: 23.4, ticket: 4100, comissao: 35875 },
-  { vendedor: "João Oliveira", vendas: 29, meta: 25, conversao: 19.3, ticket: 3400, comissao: 24650 },
+  { 
+    vendedor: "Carlos Silva", 
+    vendas: 28, 
+    meta: 25, 
+    conversao: 18.5, 
+    ticket: 3200, 
+    comissao: 22400,
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Carlos"
+  },
+  { 
+    vendedor: "Ana Santos", 
+    vendas: 32, 
+    meta: 30, 
+    conversao: 21.2, 
+    ticket: 3800, 
+    comissao: 30400,
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ana"
+  },
+  { 
+    vendedor: "Pedro Costa", 
+    vendas: 24, 
+    meta: 25, 
+    conversao: 16.8, 
+    ticket: 2900, 
+    comissao: 17400,
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Pedro"
+  },
+  { 
+    vendedor: "Mariana Lima", 
+    vendas: 35, 
+    meta: 30, 
+    conversao: 23.4, 
+    ticket: 4100, 
+    comissao: 35875,
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mariana"
+  },
+  { 
+    vendedor: "João Oliveira", 
+    vendas: 29, 
+    meta: 25, 
+    conversao: 19.3, 
+    ticket: 3400, 
+    comissao: 24650,
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Joao"
+  },
 ];
 
 const pipelineData = [
@@ -117,7 +158,10 @@ export default function Sales() {
 
       {/* Performance Individual */}
       <div className="grid grid-cols-1 gap-6">
-        <ChartCard title="Ranking de Vendedores - Performance Individual">
+        <ExpandableChart 
+          title="Ranking de Vendedores - Performance Individual"
+          description="Compara o desempenho de vendas de cada membro do time comercial contra suas metas individuais. Verde indica vendas realizadas, azul mostra a meta estabelecida."
+        >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={vendedoresPerformance} onClick={handleVendedorClick} layout="vertical">
               <defs>
@@ -139,10 +183,13 @@ export default function Sales() {
               <Bar dataKey="meta" fill="url(#gradMeta)" name="Meta" cursor="pointer" radius={[0, 8, 8, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </ChartCard>
+        </ExpandableChart>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ChartCard title="Meta do Time vs Realizado">
+          <ExpandableChart 
+            title="Meta do Time vs Realizado"
+            description="Evolução mensal das metas do time comercial (linha tracejada) comparada com o resultado real alcançado (linha sólida). Mostra o crescimento e consistência nas vendas."
+          >
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={metasTime}>
                 <defs>
@@ -181,9 +228,12 @@ export default function Sales() {
                 />
               </LineChart>
             </ResponsiveContainer>
-          </ChartCard>
+          </ExpandableChart>
 
-          <ChartCard title="Pipeline por Estágio do Funil">
+          <ExpandableChart 
+            title="Pipeline por Estágio do Funil"
+            description="Funil de vendas mostrando quantidade de oportunidades e valor potencial em cada etapa do processo comercial, da prospecção ao fechamento."
+          >
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={pipelineData}>
                 <defs>
@@ -200,10 +250,13 @@ export default function Sales() {
                 <Bar dataKey="quantidade" fill="url(#gradPipeline)" name="Qtd" cursor="pointer" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          </ChartCard>
+          </ExpandableChart>
         </div>
 
-        <ChartCard title="Vendas por Linha de Serviço">
+        <ExpandableChart 
+          title="Vendas por Linha de Serviço"
+          description="Distribuição de vendas e faturamento entre as diferentes linhas de serviço do Grupo FN, permitindo identificar produtos mais vendidos e com maior receita."
+        >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={vendasPorServico}>
               <defs>
@@ -221,10 +274,10 @@ export default function Sales() {
               <Bar dataKey="valor" fill="url(#gradServico)" name="Valor (R$)" cursor="pointer" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </ChartCard>
+        </ExpandableChart>
       </div>
 
-      {/* Detalhamento de Vendedores */}
+      {/* Detalhamento de Vendedores com Fotos */}
       <Card className="p-6 gradient-card border-border shadow-soft">
         <h3 className="text-lg font-semibold text-foreground mb-6">Detalhamento por Vendedor</h3>
         <div className="space-y-6">
@@ -232,25 +285,33 @@ export default function Sales() {
             const atingimento = ((vendedor.vendas / vendedor.meta) * 100).toFixed(0);
             return (
               <div key={vendedor.vendedor} className="space-y-2">
-                <div className="flex justify-between items-center flex-wrap gap-2">
-                  <div>
-                    <p className="font-medium text-foreground">{vendedor.vendedor}</p>
-                    <p className="text-xs text-muted-foreground break-words">
-                      {vendedor.vendas}/{vendedor.meta} vendas • 
-                      Conversão: {vendedor.conversao}% • 
-                      Ticket: R$ {vendedor.ticket.toLocaleString("pt-BR")}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-lg font-bold ${Number(atingimento) >= 100 ? 'text-success' : 'text-warning'}`}>
-                      {atingimento}%
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      R$ {vendedor.comissao.toLocaleString("pt-BR")} comissão
-                    </p>
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-12 w-12 border-2 border-primary/20">
+                    <AvatarImage src={vendedor.avatar} alt={vendedor.vendedor} />
+                    <AvatarFallback>{vendedor.vendedor.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center flex-wrap gap-2">
+                      <div>
+                        <p className="font-medium text-foreground">{vendedor.vendedor}</p>
+                        <p className="text-xs text-muted-foreground break-words">
+                          {vendedor.vendas}/{vendedor.meta} vendas • 
+                          Conversão: {vendedor.conversao}% • 
+                          Ticket: R$ {vendedor.ticket.toLocaleString("pt-BR")}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className={`text-lg font-bold ${Number(atingimento) >= 100 ? 'text-success' : 'text-warning'}`}>
+                          {atingimento}%
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          R$ {vendedor.comissao.toLocaleString("pt-BR")} comissão
+                        </p>
+                      </div>
+                    </div>
+                    <Progress value={Number(atingimento)} className="h-2 mt-2" />
                   </div>
                 </div>
-                <Progress value={Number(atingimento)} className="h-2" />
               </div>
             );
           })}
