@@ -38,6 +38,11 @@ const vagasData = [
   { status: "Fechadas (mês)", quantidade: 5 },
 ];
 
+const npsInternoData = [
+  { name: "NPS", value: 72, fill: "hsl(142 76% 36%)" },
+  { name: "Restante", value: 28, fill: "hsl(var(--muted))" },
+];
+
 const COLORS = ["hsl(0 84% 60%)", "hsl(38 92% 50%)", "hsl(142 76% 36%)"];
 
 export default function HR() {
@@ -162,6 +167,51 @@ export default function HR() {
                 <Bar dataKey="admissoes" fill="hsl(142 76% 36%)" name="Admissões" cursor="pointer" />
                 <Bar dataKey="desligamentos" fill="hsl(0 84% 60%)" name="Desligamentos" cursor="pointer" />
               </BarChart>
+            </ResponsiveContainer>
+          </ExpandableChart>
+
+          <ExpandableChart 
+            title="NPS Interno - Farol de Satisfação"
+            description="Net Promoter Score interno mede a satisfação e lealdade dos colaboradores. Pontuação de 0-100: acima de 70 é excelente, 50-70 é bom, abaixo de 50 requer atenção."
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={npsInternoData}
+                  cx="50%"
+                  cy="70%"
+                  startAngle={180}
+                  endAngle={0}
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={0}
+                  dataKey="value"
+                >
+                  {npsInternoData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <text
+                  x="50%"
+                  y="60%"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  className="text-4xl font-bold"
+                  fill="hsl(var(--foreground))"
+                >
+                  72
+                </text>
+                <text
+                  x="50%"
+                  y="75%"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  className="text-sm"
+                  fill="hsl(var(--muted-foreground))"
+                >
+                  Excelente
+                </text>
+              </PieChart>
             </ResponsiveContainer>
           </ExpandableChart>
 
