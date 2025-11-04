@@ -113,10 +113,16 @@ export default function Cashflow() {
             description="Distribuição das despesas por categoria. Identifica onde o dinheiro está sendo gasto e ajuda a encontrar oportunidades de redução de custos."
           >
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={categoriaDespesas} layout="vertical">
+              <BarChart data={categoriaDespesas} layout="vertical" margin={{ left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis type="number" stroke="hsl(var(--muted-foreground))" />
-                <YAxis dataKey="categoria" type="category" stroke="hsl(var(--muted-foreground))" />
+                <YAxis 
+                  dataKey="categoria" 
+                  type="category" 
+                  stroke="hsl(var(--muted-foreground))" 
+                  width={100}
+                  tick={{ fontSize: 12 }}
+                />
                 <Tooltip content={<CustomTooltip valuePrefix="R$ " />} />
                 <Bar dataKey="valor" fill="hsl(217 91% 60%)" name="Valor" />
               </BarChart>
