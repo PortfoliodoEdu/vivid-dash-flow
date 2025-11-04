@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { FilterProvider } from "./contexts/FilterContext";
 import { DashboardLayout } from "./components/DashboardLayout";
 import Overview from "./pages/Overview";
 import Financial from "./pages/Financial";
@@ -16,20 +17,22 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <DashboardLayout>
-          <Routes>
-            <Route path="/" element={<Overview />} />
-            <Route path="/financial" element={<Financial />} />
-            <Route path="/sales" element={<Sales />} />
-            <Route path="/operations" element={<Operations />} />
-            <Route path="/forecasts" element={<Forecasts />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </DashboardLayout>
-      </BrowserRouter>
+      <FilterProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <DashboardLayout>
+            <Routes>
+              <Route path="/" element={<Overview />} />
+              <Route path="/financial" element={<Financial />} />
+              <Route path="/sales" element={<Sales />} />
+              <Route path="/operations" element={<Operations />} />
+              <Route path="/forecasts" element={<Forecasts />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </DashboardLayout>
+        </BrowserRouter>
+      </FilterProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

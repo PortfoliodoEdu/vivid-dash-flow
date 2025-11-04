@@ -14,11 +14,11 @@ import {
 } from "@/components/ui/sidebar";
 
 const menuItems = [
-  { title: "Executive Overview", url: "/", icon: LayoutDashboard },
-  { title: "Financial Performance", url: "/financial", icon: TrendingUp },
-  { title: "Sales & Customers", url: "/sales", icon: Users },
-  { title: "Operations", url: "/operations", icon: Settings },
-  { title: "Forecasts & Goals", url: "/forecasts", icon: Target },
+  { title: "Visão Executiva", url: "/", icon: LayoutDashboard },
+  { title: "Desempenho Financeiro", url: "/financial", icon: TrendingUp },
+  { title: "Vendas & Clientes", url: "/sales", icon: Users },
+  { title: "Operações", url: "/operations", icon: Settings },
+  { title: "Previsões & Metas", url: "/forecasts", icon: Target },
 ];
 
 export function DashboardSidebar() {
@@ -29,7 +29,7 @@ export function DashboardSidebar() {
       <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
         {open && (
           <h2 className="text-lg font-semibold text-sidebar-foreground">
-            Analytics Dashboard
+            Painel Analytics
           </h2>
         )}
         <SidebarTrigger>
@@ -39,7 +39,7 @@ export function DashboardSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel>Navegação</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
