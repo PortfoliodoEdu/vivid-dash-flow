@@ -15,10 +15,10 @@ export const TVSlide = ({ title, subtitle, children, isActive }: TVSlideProps) =
         isActive ? "opacity-100" : "opacity-0 absolute inset-0 pointer-events-none"
       }`}
     >
-      <div className="h-full flex flex-col p-8 bg-background">
-        <div className="mb-6">
-          <h1 className="text-5xl font-bold text-foreground mb-2">{title}</h1>
-          {subtitle && <p className="text-xl text-muted-foreground">{subtitle}</p>}
+      <div className="h-full flex flex-col p-8 pb-32 bg-background">
+        <div className="mb-4">
+          <h1 className="text-4xl font-bold text-foreground mb-1">{title}</h1>
+          {subtitle && <p className="text-lg text-muted-foreground">{subtitle}</p>}
         </div>
         <div className="flex-1 overflow-hidden">
           {children}
