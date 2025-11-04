@@ -2,6 +2,7 @@ import { DollarSign, TrendingUp, TrendingDown, Percent, Users, ShoppingCart, Use
 import { KPICard } from "@/components/KPICard";
 import { ChartCard } from "@/components/ChartCard";
 import { FilterBadges } from "@/components/FilterBadges";
+import { FilterButtons } from "@/components/FilterButtons";
 import { CustomTooltip } from "@/components/CustomTooltip";
 import { useFilters } from "@/contexts/FilterContext";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Legend } from "recharts";
@@ -79,11 +80,21 @@ export default function Overview() {
   const mrrAnterior = mrrData[mrrData.length - 2]?.mrr || 0;
   const crescimentoMRR = mrrAnterior ? (((mrrAtual - mrrAnterior) / mrrAnterior) * 100).toFixed(1) : "0";
 
+  const monthFilters = allMRRData.map(d => ({ label: d.month, value: d.month }));
+
   return (
     <div className="p-8 space-y-8 animate-fade-in">
-      <div>
-        <h1 className="text-4xl font-bold text-foreground mb-2">Visão Executiva</h1>
-        <p className="text-muted-foreground">Dashboard do CEO - Principais indicadores do Grupo FN</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Visão Executiva</h1>
+          <p className="text-muted-foreground">Dashboard do CEO - Principais indicadores do Grupo FN</p>
+        </div>
+        <FilterButtons
+          filters={monthFilters}
+          currentValue={filters.month}
+          onValueChange={(val) => setFilter("month", val || undefined)}
+          placeholder="Selecione o mês"
+        />
       </div>
 
       <FilterBadges />
@@ -128,11 +139,11 @@ export default function Overview() {
             className="p-5 gradient-card border-border shadow-soft hover:shadow-hover transition-all duration-300 animate-slide-up"
             style={{ animationDelay: `${500 + index * 100}ms` }}
           >
-            <h3 className="text-xs font-medium text-muted-foreground mb-3">{metric.label}</h3>
+            <h3 className="text-xs font-medium text-muted-foreground mb-3 break-words">{metric.label}</h3>
             <div className="flex items-end justify-between mb-2">
-              <p className="text-2xl font-bold text-foreground">{metric.value}</p>
+              <p className="text-2xl font-bold text-foreground break-words">{metric.value}</p>
               <div
-                className={`flex items-center text-xs font-medium ${
+                className={`flex items-center text-xs font-medium flex-shrink-0 ${
                   metric.change >= 0 && !metric.label.includes("Churn") ? "text-success" : 
                   metric.change < 0 && metric.label.includes("Churn") ? "text-success" :
                   "text-destructive"
@@ -146,8 +157,8 @@ export default function Overview() {
                 {Math.abs(metric.change)}%
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">{metric.previous}</p>
-            <p className="text-xs text-muted-foreground mt-1">{metric.period}</p>
+            <p className="text-xs text-muted-foreground break-words">{metric.previous}</p>
+            <p className="text-xs text-muted-foreground mt-1 break-words">{metric.period}</p>
           </Card>
         ))}
       </div>
@@ -159,11 +170,11 @@ export default function Overview() {
             <AreaChart data={mrrData} onClick={handleMRRClick}>
               <defs>
                 <linearGradient id="colorMRR" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(217 91% 60%)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(217 91% 60%)" stopOpacity={0} />
+                  <stop offset="5%" stopColor="hsl(217 91% 60%)" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="hsl(217 91% 60%)" stopOpacity={0.05} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
               <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
               <YAxis stroke="hsl(var(--muted-foreground))" />
               <Tooltip content={<CustomTooltip valuePrefix="R$ " />} />
@@ -175,6 +186,7 @@ export default function Overview() {
                 fill="url(#colorMRR)"
                 name="MRR Total"
                 cursor="pointer"
+                animationDuration={1000}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -183,12 +195,12 @@ export default function Overview() {
         <ChartCard title="Composição do Crescimento MRR" delay={1000}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={mrrData} onClick={handleMRRClick}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
               <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
               <YAxis stroke="hsl(var(--muted-foreground))" />
               <Tooltip content={<CustomTooltip valuePrefix="R$ " />} />
               <Legend />
-              <Bar dataKey="novos" fill="hsl(142 76% 36%)" name="Novos Clientes" stackId="a" cursor="pointer" />
+              <Bar dataKey="novos" fill="hsl(142 76% 36%)" name="Novos Clientes" stackId="a" cursor="pointer" radius={[4, 4, 0, 0]} />
               <Bar dataKey="expansao" fill="hsl(217 91% 60%)" name="Expansão" stackId="a" cursor="pointer" />
               <Bar dataKey="churn" fill="hsl(0 84% 60%)" name="Churn" stackId="a" cursor="pointer" />
             </BarChart>
@@ -198,7 +210,13 @@ export default function Overview() {
         <ChartCard title="Receita por Colaborador (Eficiência Operacional)" delay={1100}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={receitaPorColaborador}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <defs>
+                <linearGradient id="colorReceita" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(142 76% 36%)" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(142 76% 36%)" stopOpacity={0.05} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
               <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
               <YAxis stroke="hsl(var(--muted-foreground))" />
               <Tooltip content={<CustomTooltip valuePrefix="R$ " />} />
@@ -209,7 +227,9 @@ export default function Overview() {
                 strokeWidth={3}
                 name="Receita/Colab"
                 cursor="pointer"
-                dot={{ fill: "hsl(142 76% 36%)", r: 5 }}
+                dot={{ fill: "hsl(142 76% 36%)", r: 6, strokeWidth: 2, stroke: "#fff" }}
+                activeDot={{ r: 8 }}
+                animationDuration={1000}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -218,29 +238,29 @@ export default function Overview() {
         <Card className="p-6 gradient-card border-border shadow-soft">
           <h3 className="text-lg font-semibold text-foreground mb-6">KPIs Críticos - Atenção!</h3>
           <div className="space-y-4">
-            <div className="flex items-start gap-3 p-3 bg-success/10 rounded-lg">
-              <Activity className="h-5 w-5 text-success mt-0.5" />
+            <div className="flex items-start gap-3 p-3 bg-success/10 rounded-lg border border-success/20">
+              <Activity className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-sm font-medium text-foreground">Churn Rate Saudável</p>
                 <p className="text-xs text-muted-foreground">0.67% - Abaixo da meta de 2%</p>
               </div>
             </div>
-            <div className="flex items-start gap-3 p-3 bg-success/10 rounded-lg">
-              <Activity className="h-5 w-5 text-success mt-0.5" />
+            <div className="flex items-start gap-3 p-3 bg-success/10 rounded-lg border border-success/20">
+              <Activity className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-sm font-medium text-foreground">LTV/CAC Excelente</p>
                 <p className="text-xs text-muted-foreground">4.37x - Muito acima do ideal (3.0x)</p>
               </div>
             </div>
-            <div className="flex items-start gap-3 p-3 bg-primary/10 rounded-lg">
-              <Activity className="h-5 w-5 text-primary mt-0.5" />
+            <div className="flex items-start gap-3 p-3 bg-primary/10 rounded-lg border border-primary/20">
+              <Activity className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-sm font-medium text-foreground">Crescimento MRR</p>
                 <p className="text-xs text-muted-foreground">+6.4% MoM - Ritmo sustentável</p>
               </div>
             </div>
-            <div className="flex items-start gap-3 p-3 bg-success/10 rounded-lg">
-              <Activity className="h-5 w-5 text-success mt-0.5" />
+            <div className="flex items-start gap-3 p-3 bg-success/10 rounded-lg border border-success/20">
+              <Activity className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-sm font-medium text-foreground">Base de Clientes</p>
                 <p className="text-xs text-muted-foreground">1.542 ativos - Meta: 1.500+ (✓)</p>

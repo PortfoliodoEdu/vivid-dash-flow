@@ -13,7 +13,7 @@ export const ChartCard = ({ title, children, delay = 0 }: ChartCardProps) => {
       className="p-6 gradient-card border-border shadow-soft hover:shadow-hover transition-all duration-300 animate-scale-in"
       style={{ animationDelay: `${delay}ms` }}
     >
-      <h3 className="text-lg font-semibold text-foreground mb-4">{title}</h3>
+      <h3 className="text-lg font-semibold text-foreground mb-4 break-words">{title}</h3>
       <div className="w-full h-[300px]">{children}</div>
     </Card>
   );

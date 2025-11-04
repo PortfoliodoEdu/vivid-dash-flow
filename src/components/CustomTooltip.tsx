@@ -28,9 +28,6 @@ export const CustomTooltip = ({ active, payload, label, valuePrefix = "" }: Cust
           </span>
         </div>
       ))}
-      <p className="text-xs text-muted-foreground mt-2 italic">
-        Clique para filtrar
-      </p>
     </Card>
   );
 };

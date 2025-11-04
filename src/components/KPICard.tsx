@@ -26,19 +26,19 @@ export const KPICard = ({ title, value, change, icon: Icon, delay = 0 }: KPICard
       }`}
     >
       <div className="flex items-start justify-between mb-4">
-        <div className="p-3 rounded-lg bg-primary/10">
+        <div className="p-3 rounded-lg bg-primary/10 flex-shrink-0">
           <Icon className="h-6 w-6 text-primary" />
         </div>
         <div
-          className={`text-sm font-medium px-2 py-1 rounded ${
+          className={`text-sm font-medium px-2 py-1 rounded flex-shrink-0 ${
             isPositive ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
           }`}
         >
           {isPositive ? "+" : ""}{change}%
         </div>
       </div>
-      <h3 className="text-sm font-medium text-muted-foreground mb-2">{title}</h3>
-      <p className="text-3xl font-bold text-foreground">{value}</p>
+      <h3 className="text-sm font-medium text-muted-foreground mb-2 break-words">{title}</h3>
+      <p className="text-3xl font-bold text-foreground break-words">{value}</p>
     </Card>
   );
 };

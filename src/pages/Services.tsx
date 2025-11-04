@@ -1,7 +1,7 @@
 import { ChartCard } from "@/components/ChartCard";
 import { Card } from "@/components/ui/card";
 import { CustomTooltip } from "@/components/CustomTooltip";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line, Cell } from "recharts";
 import { Package, TrendingUp, DollarSign, Percent } from "lucide-react";
 
 const margemPorServico = [
@@ -162,11 +162,10 @@ export default function Services() {
               <XAxis type="number" stroke="hsl(var(--muted-foreground))" domain={[0, 50]} />
               <YAxis dataKey="servico" type="category" stroke="hsl(var(--muted-foreground))" width={180} />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="margem" name="Margem %" cursor="pointer">
+              <Bar dataKey="margem" name="Margem %" cursor="pointer" fill="hsl(217 91% 60%)">
                 {margemPorServico.map((entry, index) => (
-                  <Bar 
-                    key={`bar-${index}`} 
-                    dataKey="margem" 
+                  <Cell 
+                    key={`cell-${index}`}
                     fill={entry.margem >= 35 ? "hsl(142 76% 36%)" : entry.margem >= 25 ? "hsl(217 91% 60%)" : "hsl(38 92% 50%)"}
                   />
                 ))}
