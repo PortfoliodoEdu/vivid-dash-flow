@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { getPageData, savePageData, deletePageData, PageData, initDB } from '@/lib/indexedDB';
-import { allTemplates } from '@/lib/templates';
+import { smartTemplates } from '@/lib/smartTemplates';
 
 interface DataContextType {
   getData: (pageId: string, sheetName?: string) => any;
@@ -25,19 +25,21 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     setIsLoading(true);
     try {
       await initDB();
-      const pageIds = Object.keys(allTemplates);
+      const pageIds = Object.keys(smartTemplates);
       const dataMap: Record<string, PageData> = {};
       
       for (const pageId of pageIds) {
         const data = await getPageData(pageId);
         if (data) {
           dataMap[pageId] = data;
+          console.log(`[DataContext] Loaded data for ${pageId}:`, data);
         }
       }
       
       setPageDataMap(dataMap);
+      console.log('[DataContext] All data loaded:', Object.keys(dataMap));
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error('[DataContext] Error loading data:', error);
     } finally {
       setIsLoading(false);
     }
@@ -49,7 +51,9 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
   const getData = (pageId: string, sheetName?: string): any => {
     const pageData = pageDataMap[pageId];
-    const template = allTemplates[pageId];
+    const template = smartTemplates[pageId];
+    
+    console.log(`[DataContext] getData(${pageId}, ${sheetName})`, { hasPageData: !!pageData, hasTemplate: !!template });
     
     if (pageData && pageData.data) {
       const data = pageData.data;
@@ -59,6 +63,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
           return (data as Record<string, any[]>)[sheetName] || [];
         }
         const keys = Object.keys(data);
+        console.log(`[DataContext] Multi-sheet data, keys:`, keys);
         return keys.length > 0 ? (data as Record<string, any[]>)[keys[0]] : [];
       }
       // If data is array (backward compatibility)
@@ -67,21 +72,30 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     
     // Return sample data from template
     if (template) {
+      console.log(`[DataContext] Using sample data from template ${pageId}`);
       if (sheetName) {
-        const sheet = template.sheets.find(s => s.sheetName === sheetName);
-        return sheet?.sampleData || [];
+        const sheet = template.sheets.find(s => s.name === sheetName);
+        return sheet?.examples || [];
       }
-      return template.sheets[0]?.sampleData || [];
+      return template.sheets[0]?.examples || [];
     }
     return [];
   };
 
-  const setData = async (pageId: string, data: any[], fileName: string): Promise<void> => {
-    await savePageData(pageId, data, fileName);
-    setPageDataMap(prev => ({
-      ...prev,
-      [pageId]: { pageId, data, fileName, uploadedAt: new Date() }
-    }));
+  const setData = async (pageId: string, data: any, fileName: string): Promise<void> => {
+    console.log(`[DataContext] setData called for ${pageId}`, { fileName, data });
+    
+    try {
+      await savePageData(pageId, data, fileName);
+      setPageDataMap(prev => ({
+        ...prev,
+        [pageId]: { pageId, data, fileName, uploadedAt: new Date() }
+      }));
+      console.log(`[DataContext] Data saved successfully for ${pageId}`);
+    } catch (error) {
+      console.error(`[DataContext] Error saving data for ${pageId}:`, error);
+      throw error;
+    }
   };
 
   const clearData = async (pageId: string): Promise<void> => {

@@ -417,6 +417,8 @@ export const processUploadedData = async (
   file: File, 
   mappings?: Record<string, { sourceColumn: string; targetKey: string }[]>
 ): Promise<Record<string, any[]>> => {
+  console.log('[processUploadedData] Starting...', { fileName: file.name, hasMappings: !!mappings });
+  
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     
@@ -424,6 +426,7 @@ export const processUploadedData = async (
       try {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
+        console.log('[processUploadedData] Workbook sheets:', workbook.SheetNames);
 
         const result: Record<string, any[]> = {};
         
@@ -431,9 +434,12 @@ export const processUploadedData = async (
           const worksheet = workbook.Sheets[sheetName];
           const rawData = XLSX.utils.sheet_to_json(worksheet) as Record<string, any>[];
           
+          console.log(`[processUploadedData] Sheet "${sheetName}": ${rawData.length} rows`);
+          
           // Apply mappings if provided
           const sheetMappings = mappings?.[sheetName];
           if (sheetMappings && sheetMappings.length > 0) {
+            console.log(`[processUploadedData] Applying ${sheetMappings.length} mappings to "${sheetName}"`);
             result[sheetName] = rawData.map(row => {
               const transformedRow: Record<string, any> = {};
               for (const mapping of sheetMappings) {
@@ -448,13 +454,18 @@ export const processUploadedData = async (
           }
         });
 
+        console.log('[processUploadedData] Final result:', Object.keys(result));
         resolve(result);
       } catch (error) {
+        console.error('[processUploadedData] Error:', error);
         reject(new Error('Erro ao processar arquivo.'));
       }
     };
 
-    reader.onerror = () => reject(new Error('Erro ao ler arquivo.'));
+    reader.onerror = () => {
+      console.error('[processUploadedData] FileReader error');
+      reject(new Error('Erro ao ler arquivo.'));
+    };
     reader.readAsArrayBuffer(file);
   });
 };

@@ -15,7 +15,8 @@ import {
   Link2
 } from 'lucide-react';
 import { Button } from './ui/button';
-import { Dialog, DialogContent } from './ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from './ui/dialog';
+import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
 import { 
   smartTemplates, 
   generateSmartTemplate, 
@@ -153,7 +154,12 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
   };
 
   const handleConfirmImport = async () => {
-    if (!uploadedFile) return;
+    if (!uploadedFile) {
+      console.error('[SmartUploadModal] No uploaded file');
+      return;
+    }
+
+    console.log('[SmartUploadModal] Starting import...', { fileName: uploadedFile.name });
 
     try {
       // Use confirmed mappings if any, otherwise auto-detected mappings
@@ -171,11 +177,21 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
         }
       });
 
+      console.log('[SmartUploadModal] Mappings:', allMappings);
+
       const data = await processUploadedData(uploadedFile, Object.keys(allMappings).length > 0 ? allMappings : undefined);
+      
+      console.log('[SmartUploadModal] Processed data:', data);
+      console.log('[SmartUploadModal] Calling onDataLoaded...');
+      
       onDataLoaded(data, uploadedFile.name);
+      
+      console.log('[SmartUploadModal] onDataLoaded called successfully');
+      
       toast.success(`${fileAnalysis?.totalRows || 0} registros importados com sucesso!`);
       handleClose();
     } catch (error: any) {
+      console.error('[SmartUploadModal] Import error:', error);
       toast.error(error.message || "Erro ao importar dados.");
     }
   };
@@ -235,6 +251,10 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className={`p-0 overflow-hidden bg-card border-border/50 rounded-xl ${step === 'mapping' ? 'sm:max-w-[900px]' : 'sm:max-w-[700px]'}`}>
+        <VisuallyHidden.Root>
+          <DialogTitle>Central de Importação - {template.name}</DialogTitle>
+          <DialogDescription>Importe dados para o dashboard {template.name}</DialogDescription>
+        </VisuallyHidden.Root>
         
         {/* Header Gradient */}
         <div className="bg-gradient-to-r from-primary to-primary/80 p-6 text-primary-foreground">

@@ -45,8 +45,14 @@ const DataUploader: React.FC<DataUploaderProps> = ({ pageId, onDataUpdated }) =>
   };
 
   const handleDataLoaded = async (data: Record<string, any[]>, fileName: string) => {
-    await setData(pageId, data as any, fileName);
-    onDataUpdated?.();
+    console.log('[DataUploader] handleDataLoaded called', { pageId, fileName, data });
+    try {
+      await setData(pageId, data, fileName);
+      console.log('[DataUploader] setData completed successfully');
+      onDataUpdated?.();
+    } catch (error) {
+      console.error('[DataUploader] Error in setData:', error);
+    }
   };
 
   return (
