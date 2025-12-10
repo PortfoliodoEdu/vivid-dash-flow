@@ -3,6 +3,8 @@ import { ExpandableChart } from "@/components/ExpandableChart";
 import { FilterBadges } from "@/components/FilterBadges";
 import { CustomTooltip } from "@/components/CustomTooltip";
 import { AccountSelector } from "@/components/AccountSelector";
+import DataUploader from "@/components/DataUploader";
+import { useData } from "@/contexts/DataContext";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -108,6 +110,8 @@ const COLORS = ["hsl(217 91% 60%)", "hsl(142 76% 36%)", "hsl(38 92% 50%)"];
 
 export default function Clients() {
   const [expandedServicos, setExpandedServicos] = useState<string[]>([]);
+  const { getData } = useData();
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const toggleServico = (servico: string) => {
     setExpandedServicos(prev => 
@@ -128,7 +132,10 @@ export default function Clients() {
           <h1 className="text-4xl font-bold text-foreground mb-2">Clientes & Retenção</h1>
           <p className="text-muted-foreground">Análise completa da base de clientes do Grupo FN</p>
         </div>
-        <AccountSelector />
+        <div className="flex items-center gap-3">
+          <DataUploader pageId="clients" onDataUpdated={() => setRefreshKey(k => k + 1)} />
+          <AccountSelector />
+        </div>
       </div>
 
       <FilterBadges />

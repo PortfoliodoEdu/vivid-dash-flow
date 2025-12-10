@@ -3,8 +3,8 @@ import { getPageData, savePageData, deletePageData, PageData, initDB } from '@/l
 import { allTemplates } from '@/lib/templates';
 
 interface DataContextType {
-  getData: (pageId: string) => any[];
-  setData: (pageId: string, data: any[], fileName: string) => Promise<void>;
+  getData: (pageId: string, sheetName?: string) => any;
+  setData: (pageId: string, data: any, fileName: string) => Promise<void>;
   clearData: (pageId: string) => Promise<void>;
   getUploadInfo: (pageId: string) => { fileName: string; uploadedAt: Date } | null;
   isLoading: boolean;
