@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { ExpandableChart } from "@/components/ExpandableChart";
 import { FilterBadges } from "@/components/FilterBadges";
 import { CustomTooltip } from "@/components/CustomTooltip";
 import { AccountSelector } from "@/components/AccountSelector";
+import DataUploader from "@/components/DataUploader";
+import { useData } from "@/contexts/DataContext";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from "recharts";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
@@ -113,6 +116,8 @@ const metasTime = [
 ];
 
 export default function Sales() {
+  const { getData } = useData();
+  const [refreshKey, setRefreshKey] = useState(0);
   const totalVendas = vendedoresPerformance.reduce((acc, curr) => acc + curr.oportunidadesConvertidas, 0);
   const totalMeta = vendedoresPerformance.reduce((acc, curr) => acc + curr.metaVendas, 0);
   const atingimentoMeta = ((totalVendas / totalMeta) * 100).toFixed(1);
@@ -141,7 +146,10 @@ export default function Sales() {
           <h1 className="text-4xl font-bold text-foreground mb-2">Comercial & Vendas</h1>
           <p className="text-muted-foreground">Performance individual e oportunidades convertidas do time comercial</p>
         </div>
-        <AccountSelector />
+        <div className="flex items-center gap-3">
+          <DataUploader pageId="sales" onDataUpdated={() => setRefreshKey(k => k + 1)} />
+          <AccountSelector />
+        </div>
       </div>
 
       <FilterBadges />

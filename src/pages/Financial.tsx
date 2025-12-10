@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { ExpandableChart } from "@/components/ExpandableChart";
 import { FilterBadges } from "@/components/FilterBadges";
 import { CustomTooltip } from "@/components/CustomTooltip";
+import DataUploader from "@/components/DataUploader";
 import { useFilters } from "@/contexts/FilterContext";
+import { useData } from "@/contexts/DataContext";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
@@ -73,6 +76,8 @@ const allIndicadores = [
 
 export default function Financial() {
   const { filters, setFilter } = useFilters();
+  const { getData } = useData();
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const dreData = filters.month
     ? allDREData.filter((d) => d.month === filters.month)
@@ -96,9 +101,12 @@ export default function Financial() {
 
   return (
     <div className="p-8 space-y-8 animate-fade-in">
-      <div>
-        <h1 className="text-4xl font-bold text-foreground mb-2">Financeiro & DRE</h1>
-        <p className="text-muted-foreground">Demonstrativo de Resultado e análise contábil</p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Financeiro & DRE</h1>
+          <p className="text-muted-foreground">Demonstrativo de Resultado e análise contábil</p>
+        </div>
+        <DataUploader pageId="financial" onDataUpdated={() => setRefreshKey(k => k + 1)} />
       </div>
 
       <FilterBadges />

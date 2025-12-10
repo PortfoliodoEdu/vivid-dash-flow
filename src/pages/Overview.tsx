@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { DollarSign, TrendingUp, TrendingDown, Activity, Info, AlertTriangle } from "lucide-react";
 import { ExpandableChart } from "@/components/ExpandableChart";
 import { FilterBadges } from "@/components/FilterBadges";
 import { CustomTooltip } from "@/components/CustomTooltip";
 import { AccountSelector } from "@/components/AccountSelector";
+import DataUploader from "@/components/DataUploader";
 import { useFilters } from "@/contexts/FilterContext";
+import { useData } from "@/contexts/DataContext";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Legend } from "recharts";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
@@ -14,23 +17,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-const allMRRData = [
-  { month: "Jan", mrr: 850000, novos: 45000, churn: -12000, expansao: 15000 },
-  { month: "Fev", mrr: 898000, novos: 52000, churn: -9000, expansao: 18000 },
-  { month: "Mar", mrr: 945000, novos: 48000, churn: -11000, expansao: 22000 },
-  { month: "Abr", mrr: 1004000, novos: 61000, churn: -8000, expansao: 25000 },
-  { month: "Mai", mrr: 1057000, novos: 55000, churn: -10000, expansao: 28000 },
-  { month: "Jun", mrr: 1125000, novos: 67000, churn: -7500, expansao: 31000 },
-];
-
-const receitaPorColaborador = [
-  { month: "Jan", receita: 8500 },
-  { month: "Fev", receita: 8980 },
-  { month: "Mar", receita: 9450 },
-  { month: "Abr", receita: 10040 },
-  { month: "Mai", receita: 10570 },
-  { month: "Jun", receita: 11250 },
-];
+// KPI metrics configuration (static display config)
 
 const kpiMetrics = [
   { 
@@ -69,6 +56,25 @@ const kpiMetrics = [
 
 export default function Overview() {
   const { filters, setFilter } = useFilters();
+  const { getData } = useData();
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Get data from context
+  const mrrDataRaw = getData('overview', 'MRR');
+  const receitaPorColaboradorRaw = getData('overview', 'Produtividade');
+
+  const allMRRData = mrrDataRaw.map((item: any) => ({
+    month: item.month || item.mes || '',
+    mrr: Number(item.mrr) || 0,
+    novos: Number(item.novos) || 0,
+    churn: Number(item.churn) || 0,
+    expansao: Number(item.expansao) || 0,
+  }));
+
+  const receitaPorColaborador = receitaPorColaboradorRaw.map((item: any) => ({
+    month: item.month || item.mes || '',
+    receita: Number(item.receita) || 0,
+  }));
 
   const mrrData = filters.month
     ? allMRRData.filter((d) => d.month === filters.month)
@@ -96,7 +102,10 @@ export default function Overview() {
           <h1 className="text-4xl font-bold text-foreground mb-2">Visão Executiva</h1>
           <p className="text-muted-foreground">Dashboard do CEO - Principais indicadores do Grupo FN</p>
         </div>
-        <AccountSelector />
+        <div className="flex items-center gap-3">
+          <DataUploader pageId="overview" onDataUpdated={() => setRefreshKey(k => k + 1)} />
+          <AccountSelector />
+        </div>
       </div>
 
       <FilterBadges />

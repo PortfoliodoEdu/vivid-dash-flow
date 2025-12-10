@@ -3,6 +3,8 @@ import { ExpandableChart } from "@/components/ExpandableChart";
 import { Card } from "@/components/ui/card";
 import { CustomTooltip } from "@/components/CustomTooltip";
 import { AccountSelector } from "@/components/AccountSelector";
+import DataUploader from "@/components/DataUploader";
+import { useData } from "@/contexts/DataContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend, PieChart, Pie, Cell } from "recharts";
 import { Users, DollarSign, TrendingUp, UserX } from "lucide-react";
@@ -61,6 +63,8 @@ const COLORS = ["hsl(0 84% 60%)", "hsl(38 92% 50%)", "hsl(142 76% 36%)"];
 
 export default function HR() {
   const [selectedDepartamento, setSelectedDepartamento] = useState("all");
+  const { getData } = useData();
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const filteredData = selectedDepartamento === "all" 
     ? colaboradoresPorDepartamento 
@@ -85,23 +89,24 @@ export default function HR() {
             Gestão de pessoas, custos e performance da equipe por departamento
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Select value={selectedDepartamento} onValueChange={setSelectedDepartamento}>
-            <SelectTrigger 
-              className="w-[200px] h-10 text-sm border-border/50 bg-background/50"
-            >
-              <SelectValue placeholder="Filtrar por departamento" />
-            </SelectTrigger>
-            <SelectContent>
-              {departamentos.map((dept) => (
-                <SelectItem key={dept.id} value={dept.id}>
-                  {dept.nome}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <AccountSelector />
-        </div>
+          <div className="flex items-center gap-3">
+            <DataUploader pageId="hr" onDataUpdated={() => setRefreshKey(k => k + 1)} />
+            <Select value={selectedDepartamento} onValueChange={setSelectedDepartamento}>
+              <SelectTrigger 
+                className="w-[200px] h-10 text-sm border-border/50 bg-background/50"
+              >
+                <SelectValue placeholder="Filtrar por departamento" />
+              </SelectTrigger>
+              <SelectContent>
+                {departamentos.map((dept) => (
+                  <SelectItem key={dept.id} value={dept.id}>
+                    {dept.nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <AccountSelector />
+          </div>
       </div>
 
       {/* KPIs de RH - Redesigned */}

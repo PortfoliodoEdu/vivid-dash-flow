@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { ExpandableChart } from "@/components/ExpandableChart";
 import { FilterBadges } from "@/components/FilterBadges";
 import { CustomTooltip } from "@/components/CustomTooltip";
+import DataUploader from "@/components/DataUploader";
 import { useFilters } from "@/contexts/FilterContext";
+import { useData } from "@/contexts/DataContext";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend, PieChart, Pie, Cell } from "recharts";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
@@ -35,6 +38,8 @@ const COLORS = ["hsl(217 91% 60%)", "hsl(142 76% 36%)", "hsl(38 92% 50%)", "hsl(
 
 export default function Marketing() {
   const { filters, setFilter } = useFilters();
+  const { getData } = useData();
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const canalData = allCanalData;
 
@@ -52,9 +57,12 @@ export default function Marketing() {
 
   return (
     <div className="p-8 space-y-8 animate-fade-in">
-      <div>
-        <h1 className="text-4xl font-bold text-foreground mb-2">Marketing & ROI</h1>
-        <p className="text-muted-foreground">Análise de investimento, conversão e retorno</p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Marketing & ROI</h1>
+          <p className="text-muted-foreground">Análise de investimento, conversão e retorno</p>
+        </div>
+        <DataUploader pageId="marketing" onDataUpdated={() => setRefreshKey(k => k + 1)} />
       </div>
 
       <FilterBadges />
