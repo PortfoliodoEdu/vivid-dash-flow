@@ -1,11 +1,15 @@
 // Complete template definitions for each dashboard page
+// OPTIMIZED: Only essential raw data fields - calculated fields are auto-generated
 import * as XLSX from 'xlsx';
+import { generateMappings, applyMappings, applyComputedFields, MappingResult, ColumnMapping } from './columnMapping';
 
 export interface TemplateColumn {
   key: string;
   label: string;
   type: 'string' | 'number' | 'date' | 'percentage';
   required: boolean;
+  description?: string; // Help text for users
+  computed?: boolean; // If true, this field is auto-calculated
 }
 
 export interface PageTemplate {
@@ -20,70 +24,52 @@ export interface PageTemplate {
 }
 
 // ============================================
-// HR Page Template - COMPLETE
+// HR Page Template - SIMPLIFIED
 // ============================================
 export const hrTemplate: PageTemplate = {
   pageId: 'hr',
   pageName: 'Recursos Humanos',
-  description: 'Dados completos de RH: colaboradores por departamento, produtividade, turnover mensal e vagas',
+  description: 'Dados de RH: colaboradores, custos e turnover por departamento',
   sheets: [
     {
       sheetName: 'Departamentos',
       columns: [
-        { key: 'departamento', label: 'Departamento', type: 'string', required: true },
-        { key: 'colaboradores', label: 'Colaboradores', type: 'number', required: true },
-        { key: 'custo', label: 'Custo RH (R$)', type: 'number', required: true },
-        { key: 'turnover', label: 'Turnover (%)', type: 'percentage', required: true },
-        { key: 'nps', label: 'NPS Interno', type: 'number', required: true },
-        { key: 'absenteismo', label: 'Absenteísmo (%)', type: 'percentage', required: true },
+        { key: 'departamento', label: 'Departamento', type: 'string', required: true, description: 'Nome do departamento' },
+        { key: 'colaboradores', label: 'Colaboradores', type: 'number', required: true, description: 'Quantidade de funcionários' },
+        { key: 'custo', label: 'Custo RH (R$)', type: 'number', required: true, description: 'Custo total com pessoal' },
+        { key: 'nps', label: 'NPS Interno', type: 'number', required: false, description: 'Nota de satisfação (0-100)' },
+        { key: 'absenteismo', label: 'Absenteísmo (%)', type: 'percentage', required: false, description: 'Taxa de ausências' },
       ],
       sampleData: [
-        { departamento: 'Operacional', colaboradores: 45, custo: 225000, turnover: 2.2, nps: 68, absenteismo: 1.5 },
-        { departamento: 'Comercial', colaboradores: 12, custo: 96000, turnover: 3.5, nps: 72, absenteismo: 0.8 },
-        { departamento: 'Administrativo', colaboradores: 18, custo: 108000, turnover: 1.8, nps: 75, absenteismo: 1.2 },
-        { departamento: 'Marketing', colaboradores: 8, custo: 56000, turnover: 1.5, nps: 78, absenteismo: 0.5 },
-        { departamento: 'TI', colaboradores: 7, custo: 63000, turnover: 2.0, nps: 80, absenteismo: 0.3 },
-        { departamento: 'RH', colaboradores: 5, custo: 35000, turnover: 1.0, nps: 82, absenteismo: 0.4 },
-        { departamento: 'Financeiro', colaboradores: 5, custo: 42000, turnover: 0.8, nps: 76, absenteismo: 0.6 },
+        { departamento: 'Operacional', colaboradores: 45, custo: 225000, nps: 68, absenteismo: 1.5 },
+        { departamento: 'Comercial', colaboradores: 12, custo: 96000, nps: 72, absenteismo: 0.8 },
+        { departamento: 'Administrativo', colaboradores: 18, custo: 108000, nps: 75, absenteismo: 1.2 },
+        { departamento: 'Marketing', colaboradores: 8, custo: 56000, nps: 78, absenteismo: 0.5 },
+        { departamento: 'TI', colaboradores: 7, custo: 63000, nps: 80, absenteismo: 0.3 },
+        { departamento: 'RH', colaboradores: 5, custo: 35000, nps: 82, absenteismo: 0.4 },
+        { departamento: 'Financeiro', colaboradores: 5, custo: 42000, nps: 76, absenteismo: 0.6 },
       ]
     },
     {
-      sheetName: 'Produtividade',
+      sheetName: 'Movimentacoes',
       columns: [
-        { key: 'month', label: 'Mês', type: 'string', required: true },
-        { key: 'receitaColab', label: 'Receita/Colaborador (R$)', type: 'number', required: true },
-        { key: 'custoColab', label: 'Custo RH/Colaborador (R$)', type: 'number', required: true },
+        { key: 'month', label: 'Mês', type: 'string', required: true, description: 'Ex: Jan, Fev, Mar...' },
+        { key: 'admissoes', label: 'Admissões', type: 'number', required: true, description: 'Contratações no mês' },
+        { key: 'desligamentos', label: 'Desligamentos', type: 'number', required: true, description: 'Saídas no mês' },
       ],
       sampleData: [
-        { month: 'Jan', receitaColab: 8500, custoColab: 6250 },
-        { month: 'Fev', receitaColab: 8980, custoColab: 6250 },
-        { month: 'Mar', receitaColab: 9450, custoColab: 6250 },
-        { month: 'Abr', receitaColab: 10040, custoColab: 6250 },
-        { month: 'Mai', receitaColab: 10570, custoColab: 6250 },
-        { month: 'Jun', receitaColab: 11250, custoColab: 6250 },
-      ]
-    },
-    {
-      sheetName: 'Turnover_Mensal',
-      columns: [
-        { key: 'month', label: 'Mês', type: 'string', required: true },
-        { key: 'admissoes', label: 'Admissões', type: 'number', required: true },
-        { key: 'desligamentos', label: 'Desligamentos', type: 'number', required: true },
-        { key: 'turnover', label: 'Turnover (%)', type: 'percentage', required: false },
-      ],
-      sampleData: [
-        { month: 'Jan', admissoes: 3, desligamentos: 2, turnover: 2.0 },
-        { month: 'Fev', admissoes: 2, desligamentos: 1, turnover: 1.0 },
-        { month: 'Mar', admissoes: 4, desligamentos: 3, turnover: 3.0 },
-        { month: 'Abr', admissoes: 5, desligamentos: 2, turnover: 2.0 },
-        { month: 'Mai', admissoes: 3, desligamentos: 1, turnover: 1.0 },
-        { month: 'Jun', admissoes: 2, desligamentos: 2, turnover: 2.0 },
+        { month: 'Jan', admissoes: 3, desligamentos: 2 },
+        { month: 'Fev', admissoes: 2, desligamentos: 1 },
+        { month: 'Mar', admissoes: 4, desligamentos: 3 },
+        { month: 'Abr', admissoes: 5, desligamentos: 2 },
+        { month: 'Mai', admissoes: 3, desligamentos: 1 },
+        { month: 'Jun', admissoes: 2, desligamentos: 2 },
       ]
     },
     {
       sheetName: 'Vagas',
       columns: [
-        { key: 'status', label: 'Status', type: 'string', required: true },
+        { key: 'status', label: 'Status', type: 'string', required: true, description: 'Abertas, Em Processo, Fechadas' },
         { key: 'quantidade', label: 'Quantidade', type: 'number', required: true },
       ],
       sampleData: [
@@ -96,28 +82,28 @@ export const hrTemplate: PageTemplate = {
 };
 
 // ============================================
-// Cashflow Page Template - COMPLETE
+// Cashflow Page Template - SIMPLIFIED
 // ============================================
 export const cashflowTemplate: PageTemplate = {
   pageId: 'cashflow',
   pageName: 'Fluxo de Caixa',
-  description: 'Fluxo de caixa mensal, categorias de despesas e projeções',
+  description: 'Entradas, saídas e projeções de caixa (saldo é calculado automaticamente)',
   sheets: [
     {
       sheetName: 'Fluxo_Mensal',
       columns: [
         { key: 'month', label: 'Mês', type: 'string', required: true },
-        { key: 'entradas', label: 'Entradas (R$)', type: 'number', required: true },
-        { key: 'saidas', label: 'Saídas (R$)', type: 'number', required: true },
-        { key: 'saldo', label: 'Saldo (R$)', type: 'number', required: false },
+        { key: 'entradas', label: 'Entradas (R$)', type: 'number', required: true, description: 'Total de recebimentos' },
+        { key: 'saidas', label: 'Saídas (R$)', type: 'number', required: true, description: 'Total de pagamentos' },
+        // saldo é calculado: entradas - saidas
       ],
       sampleData: [
-        { month: 'Jan', entradas: 450000, saidas: 382353, saldo: 67647 },
-        { month: 'Fev', entradas: 520000, saidas: 430056, saldo: 89944 },
-        { month: 'Mar', entradas: 480000, saidas: 413784, saldo: 66216 },
-        { month: 'Abr', entradas: 610000, saidas: 504470, saldo: 105530 },
-        { month: 'Mai', entradas: 550000, saidas: 469986, saldo: 80014 },
-        { month: 'Jun', entradas: 670000, saidas: 554090, saldo: 115910 },
+        { month: 'Jan', entradas: 450000, saidas: 382353 },
+        { month: 'Fev', entradas: 520000, saidas: 430056 },
+        { month: 'Mar', entradas: 480000, saidas: 413784 },
+        { month: 'Abr', entradas: 610000, saidas: 504470 },
+        { month: 'Mai', entradas: 550000, saidas: 469986 },
+        { month: 'Jun', entradas: 670000, saidas: 554090 },
       ]
     },
     {
@@ -125,14 +111,14 @@ export const cashflowTemplate: PageTemplate = {
       columns: [
         { key: 'categoria', label: 'Categoria', type: 'string', required: true },
         { key: 'valor', label: 'Valor (R$)', type: 'number', required: true },
-        { key: 'percentual', label: 'Percentual (%)', type: 'percentage', required: false },
+        // percentual é calculado automaticamente do total
       ],
       sampleData: [
-        { categoria: 'Pessoal', valor: 195000, percentual: 35.2 },
-        { categoria: 'Marketing', valor: 131000, percentual: 23.6 },
-        { categoria: 'Operacional', valor: 88500, percentual: 16.0 },
-        { categoria: 'Impostos', valor: 90450, percentual: 16.3 },
-        { categoria: 'Diversos', valor: 49140, percentual: 8.9 },
+        { categoria: 'Pessoal', valor: 195000 },
+        { categoria: 'Marketing', valor: 131000 },
+        { categoria: 'Operacional', valor: 88500 },
+        { categoria: 'Impostos', valor: 90450 },
+        { categoria: 'Diversos', valor: 49140 },
       ]
     },
     {
@@ -153,31 +139,31 @@ export const cashflowTemplate: PageTemplate = {
 };
 
 // ============================================
-// Financial Page Template - COMPLETE
+// Financial Page Template - SIMPLIFIED
 // ============================================
 export const financialTemplate: PageTemplate = {
   pageId: 'financial',
   pageName: 'Financeiro (DRE)',
-  description: 'DRE completo e indicadores financeiros',
+  description: 'Receitas, custos e despesas (Rec. Líquida e Lucro são calculados automaticamente)',
   sheets: [
     {
       sheetName: 'DRE',
       columns: [
         { key: 'month', label: 'Mês', type: 'string', required: true },
-        { key: 'receitaBruta', label: 'Receita Bruta (R$)', type: 'number', required: true },
-        { key: 'impostos', label: 'Impostos (R$)', type: 'number', required: true },
-        { key: 'receitaLiquida', label: 'Receita Líquida (R$)', type: 'number', required: true },
-        { key: 'custos', label: 'Custos (R$)', type: 'number', required: true },
-        { key: 'despesas', label: 'Despesas (R$)', type: 'number', required: true },
-        { key: 'lucro', label: 'Lucro (R$)', type: 'number', required: true },
+        { key: 'receitaBruta', label: 'Receita Bruta (R$)', type: 'number', required: true, description: 'Faturamento total' },
+        { key: 'impostos', label: 'Impostos (R$)', type: 'number', required: true, description: 'Impostos sobre receita' },
+        { key: 'custos', label: 'Custos (R$)', type: 'number', required: true, description: 'Custos diretos' },
+        { key: 'despesas', label: 'Despesas (R$)', type: 'number', required: true, description: 'Despesas operacionais' },
+        // receitaLiquida = receitaBruta - impostos (calculado)
+        // lucro = receitaLiquida - custos - despesas (calculado)
       ],
       sampleData: [
-        { month: 'Jan', receitaBruta: 450000, impostos: 60750, receitaLiquida: 389250, custos: 247425, despesas: 74178, lucro: 67647 },
-        { month: 'Fev', receitaBruta: 520000, impostos: 70200, receitaLiquida: 449800, custos: 269892, despesas: 89964, lucro: 89944 },
-        { month: 'Mar', receitaBruta: 480000, impostos: 64800, receitaLiquida: 415200, custos: 274032, despesas: 74952, lucro: 66216 },
-        { month: 'Abr', receitaBruta: 610000, impostos: 82350, receitaLiquida: 527650, custos: 316590, despesas: 105530, lucro: 105530 },
-        { month: 'Mai', receitaBruta: 550000, impostos: 74250, receitaLiquida: 475750, custos: 309988, despesas: 85748, lucro: 80014 },
-        { month: 'Jun', receitaBruta: 670000, impostos: 90450, receitaLiquida: 579550, custos: 347730, despesas: 115910, lucro: 115910 },
+        { month: 'Jan', receitaBruta: 450000, impostos: 60750, custos: 247425, despesas: 74178 },
+        { month: 'Fev', receitaBruta: 520000, impostos: 70200, custos: 269892, despesas: 89964 },
+        { month: 'Mar', receitaBruta: 480000, impostos: 64800, custos: 274032, despesas: 74952 },
+        { month: 'Abr', receitaBruta: 610000, impostos: 82350, custos: 316590, despesas: 105530 },
+        { month: 'Mai', receitaBruta: 550000, impostos: 74250, custos: 309988, despesas: 85748 },
+        { month: 'Jun', receitaBruta: 670000, impostos: 90450, custos: 347730, despesas: 115910 },
       ]
     },
     {
@@ -198,33 +184,32 @@ export const financialTemplate: PageTemplate = {
 };
 
 // ============================================
-// Sales Page Template - COMPLETE
+// Sales Page Template - SIMPLIFIED
 // ============================================
 export const salesTemplate: PageTemplate = {
   pageId: 'sales',
   pageName: 'Comercial & Vendas',
-  description: 'Performance de vendedores, pipeline, vendas por serviço/produto e metas mensais',
+  description: 'Performance de vendedores e pipeline (métricas derivadas são calculadas)',
   sheets: [
     {
       sheetName: 'Vendedores',
       columns: [
         { key: 'vendedor', label: 'Vendedor', type: 'string', required: true },
-        { key: 'oportunidadesConvertidas', label: 'Oport. Convertidas', type: 'number', required: true },
-        { key: 'metaVendas', label: 'Meta (Qtd)', type: 'number', required: true },
-        { key: 'conversao', label: 'Conversão (%)', type: 'percentage', required: true },
-        { key: 'ticket', label: 'Ticket Médio (R$)', type: 'number', required: true },
-        { key: 'comissao', label: 'Comissão (R$)', type: 'number', required: false },
-        { key: 'ligacoes', label: 'Ligações', type: 'number', required: true },
-        { key: 'whatsapp', label: 'WhatsApp', type: 'number', required: true },
-        { key: 'contatosNecessarios', label: 'Contatos/Venda', type: 'number', required: false },
-        { key: 'pipeline', label: 'Pipeline (Qtd)', type: 'number', required: false },
+        { key: 'oportunidadesConvertidas', label: 'Vendas Realizadas', type: 'number', required: true, description: 'Quantidade de vendas fechadas' },
+        { key: 'metaVendas', label: 'Meta (Qtd)', type: 'number', required: true, description: 'Meta de vendas' },
+        { key: 'conversao', label: 'Taxa Conversão (%)', type: 'percentage', required: false },
+        { key: 'ticket', label: 'Ticket Médio (R$)', type: 'number', required: false },
+        { key: 'ligacoes', label: 'Ligações', type: 'number', required: false, description: 'Total de ligações realizadas' },
+        { key: 'whatsapp', label: 'WhatsApp', type: 'number', required: false, description: 'Total de mensagens' },
+        // contatosNecessarios = (ligacoes + whatsapp) / vendas (calculado)
+        // atingimento = vendas / meta * 100 (calculado)
       ],
       sampleData: [
-        { vendedor: 'Carlos Silva', oportunidadesConvertidas: 28, metaVendas: 25, conversao: 18.5, ticket: 3200, comissao: 22400, ligacoes: 145, whatsapp: 89, contatosNecessarios: 8.3, pipeline: 42 },
-        { vendedor: 'Ana Santos', oportunidadesConvertidas: 32, metaVendas: 30, conversao: 21.2, ticket: 3800, comissao: 30400, ligacoes: 134, whatsapp: 112, contatosNecessarios: 7.7, pipeline: 38 },
-        { vendedor: 'Pedro Costa', oportunidadesConvertidas: 24, metaVendas: 25, conversao: 16.8, ticket: 2900, comissao: 17400, ligacoes: 167, whatsapp: 78, contatosNecessarios: 10.2, pipeline: 51 },
-        { vendedor: 'Mariana Lima', oportunidadesConvertidas: 35, metaVendas: 30, conversao: 23.4, ticket: 4100, comissao: 35875, ligacoes: 112, whatsapp: 98, contatosNecessarios: 6.0, pipeline: 35 },
-        { vendedor: 'João Oliveira', oportunidadesConvertidas: 29, metaVendas: 25, conversao: 19.3, ticket: 3400, comissao: 24650, ligacoes: 156, whatsapp: 67, contatosNecessarios: 7.7, pipeline: 45 },
+        { vendedor: 'Carlos Silva', oportunidadesConvertidas: 28, metaVendas: 25, conversao: 18.5, ticket: 3200, ligacoes: 145, whatsapp: 89 },
+        { vendedor: 'Ana Santos', oportunidadesConvertidas: 32, metaVendas: 30, conversao: 21.2, ticket: 3800, ligacoes: 134, whatsapp: 112 },
+        { vendedor: 'Pedro Costa', oportunidadesConvertidas: 24, metaVendas: 25, conversao: 16.8, ticket: 2900, ligacoes: 167, whatsapp: 78 },
+        { vendedor: 'Mariana Lima', oportunidadesConvertidas: 35, metaVendas: 30, conversao: 23.4, ticket: 4100, ligacoes: 112, whatsapp: 98 },
+        { vendedor: 'João Oliveira', oportunidadesConvertidas: 29, metaVendas: 25, conversao: 19.3, ticket: 3400, ligacoes: 156, whatsapp: 67 },
       ]
     },
     {
@@ -232,7 +217,7 @@ export const salesTemplate: PageTemplate = {
       columns: [
         { key: 'estagio', label: 'Estágio', type: 'string', required: true },
         { key: 'quantidade', label: 'Quantidade', type: 'number', required: true },
-        { key: 'valor', label: 'Valor (R$)', type: 'number', required: true },
+        { key: 'valor', label: 'Valor (R$)', type: 'number', required: false },
       ],
       sampleData: [
         { estagio: 'Prospecção', quantidade: 245, valor: 784000 },
@@ -247,32 +232,14 @@ export const salesTemplate: PageTemplate = {
       columns: [
         { key: 'servico', label: 'Serviço', type: 'string', required: true },
         { key: 'vendas', label: 'Vendas (Qtd)', type: 'number', required: true },
-        { key: 'valor', label: 'Valor (R$)', type: 'number', required: true },
-        { key: 'margem', label: 'Margem (%)', type: 'percentage', required: false },
+        { key: 'valor', label: 'Valor (R$)', type: 'number', required: false },
       ],
       sampleData: [
-        { servico: 'Contabilidade', vendas: 45, valor: 162000, margem: 28 },
-        { servico: 'BPO Estratégico', vendas: 32, valor: 128000, margem: 35 },
-        { servico: 'BPO RH', vendas: 28, valor: 84000, margem: 32 },
-        { servico: 'ClickOn', vendas: 18, valor: 54000, margem: 42 },
-        { servico: 'Certificado Digital', vendas: 56, valor: 44800, margem: 18 },
-      ]
-    },
-    {
-      sheetName: 'Vendas_Produto',
-      columns: [
-        { key: 'produto', label: 'Produto', type: 'string', required: true },
-        { key: 'vendas', label: 'Vendas (Qtd)', type: 'number', required: true },
-        { key: 'valor', label: 'Valor (R$)', type: 'number', required: true },
-      ],
-      sampleData: [
-        { produto: 'Contab. Simples Nacional', vendas: 28, valor: 56000 },
-        { produto: 'Contab. Lucro Presumido', vendas: 12, valor: 72000 },
-        { produto: 'Contab. Lucro Real', vendas: 5, valor: 34000 },
-        { produto: 'BPO Financeiro Completo', vendas: 18, valor: 86400 },
-        { produto: 'Folha de Pagamento', vendas: 22, valor: 52800 },
-        { produto: 'ClickOn Pro', vendas: 14, valor: 42000 },
-        { produto: 'e-CNPJ A3', vendas: 34, valor: 27200 },
+        { servico: 'Contabilidade', vendas: 45, valor: 162000 },
+        { servico: 'BPO Estratégico', vendas: 32, valor: 128000 },
+        { servico: 'BPO RH', vendas: 28, valor: 84000 },
+        { servico: 'ClickOn', vendas: 18, valor: 54000 },
+        { servico: 'Certificado Digital', vendas: 56, valor: 44800 },
       ]
     },
     {
@@ -295,45 +262,45 @@ export const salesTemplate: PageTemplate = {
 };
 
 // ============================================
-// Marketing Page Template - COMPLETE
+// Marketing Page Template - SIMPLIFIED
 // ============================================
 export const marketingTemplate: PageTemplate = {
   pageId: 'marketing',
   pageName: 'Marketing',
-  description: 'Performance por canal, ROI mensal e funil de conversão',
+  description: 'Investimento e leads por canal (ROI e CPL são calculados automaticamente)',
   sheets: [
     {
       sheetName: 'Canais',
       columns: [
         { key: 'canal', label: 'Canal', type: 'string', required: true },
         { key: 'investimento', label: 'Investimento (R$)', type: 'number', required: true },
-        { key: 'leads', label: 'Leads', type: 'number', required: true },
-        { key: 'conversao', label: 'Conversão (%)', type: 'percentage', required: true },
-        { key: 'roi', label: 'ROI (%)', type: 'percentage', required: true },
+        { key: 'leads', label: 'Leads Gerados', type: 'number', required: true },
+        { key: 'conversao', label: 'Taxa Conversão (%)', type: 'percentage', required: false },
+        // roi e cpl são calculados
       ],
       sampleData: [
-        { canal: 'Google Ads', investimento: 45000, leads: 1250, conversao: 12.5, roi: 280 },
-        { canal: 'Facebook Ads', investimento: 32000, leads: 980, conversao: 9.8, roi: 195 },
-        { canal: 'Instagram Ads', investimento: 28000, leads: 850, conversao: 11.2, roi: 220 },
-        { canal: 'LinkedIn Ads', investimento: 18000, leads: 420, conversao: 15.8, roi: 310 },
-        { canal: 'Orgânico (SEO)', investimento: 8000, leads: 620, conversao: 18.5, roi: 580 },
+        { canal: 'Google Ads', investimento: 45000, leads: 1250, conversao: 12.5 },
+        { canal: 'Facebook Ads', investimento: 32000, leads: 980, conversao: 9.8 },
+        { canal: 'Instagram Ads', investimento: 28000, leads: 850, conversao: 11.2 },
+        { canal: 'LinkedIn Ads', investimento: 18000, leads: 420, conversao: 15.8 },
+        { canal: 'Orgânico (SEO)', investimento: 8000, leads: 620, conversao: 18.5 },
       ]
     },
     {
-      sheetName: 'ROI_Mensal',
+      sheetName: 'Resultado_Mensal',
       columns: [
         { key: 'month', label: 'Mês', type: 'string', required: true },
         { key: 'investimento', label: 'Investimento (R$)', type: 'number', required: true },
         { key: 'receita', label: 'Receita Gerada (R$)', type: 'number', required: true },
-        { key: 'roi', label: 'ROI (%)', type: 'percentage', required: false },
+        // roi = (receita - investimento) / investimento * 100 (calculado)
       ],
       sampleData: [
-        { month: 'Jan', investimento: 95000, receita: 245000, roi: 158 },
-        { month: 'Fev', investimento: 102000, receita: 278000, roi: 172 },
-        { month: 'Mar', investimento: 98000, receita: 256000, roi: 161 },
-        { month: 'Abr', investimento: 115000, receita: 321000, roi: 179 },
-        { month: 'Mai', investimento: 108000, receita: 298000, roi: 176 },
-        { month: 'Jun', investimento: 131000, receita: 368000, roi: 181 },
+        { month: 'Jan', investimento: 95000, receita: 245000 },
+        { month: 'Fev', investimento: 102000, receita: 278000 },
+        { month: 'Mar', investimento: 98000, receita: 256000 },
+        { month: 'Abr', investimento: 115000, receita: 321000 },
+        { month: 'Mai', investimento: 108000, receita: 298000 },
+        { month: 'Jun', investimento: 131000, receita: 368000 },
       ]
     },
     {
@@ -341,26 +308,26 @@ export const marketingTemplate: PageTemplate = {
       columns: [
         { key: 'etapa', label: 'Etapa', type: 'string', required: true },
         { key: 'valor', label: 'Quantidade', type: 'number', required: true },
-        { key: 'taxa', label: 'Taxa Conversão (%)', type: 'percentage', required: false },
+        // taxa de conversão é calculada da progressão
       ],
       sampleData: [
-        { etapa: 'Visitantes', valor: 15420, taxa: 100 },
-        { etapa: 'Leads', valor: 4120, taxa: 26.7 },
-        { etapa: 'MQLs', valor: 1856, taxa: 45.0 },
-        { etapa: 'SQLs', valor: 834, taxa: 44.9 },
-        { etapa: 'Clientes', valor: 125, taxa: 15.0 },
+        { etapa: 'Visitantes', valor: 15420 },
+        { etapa: 'Leads', valor: 4120 },
+        { etapa: 'MQLs', valor: 1856 },
+        { etapa: 'SQLs', valor: 834 },
+        { etapa: 'Clientes', valor: 125 },
       ]
     }
   ]
 };
 
 // ============================================
-// Clients Page Template - COMPLETE
+// Clients Page Template - SIMPLIFIED
 // ============================================
 export const clientsTemplate: PageTemplate = {
   pageId: 'clients',
   pageName: 'Clientes & Retenção',
-  description: 'Base de clientes mensal, serviços, regimes tributários, cross-sell e NPS',
+  description: 'Base de clientes e segmentação (churn rate é calculado automaticamente)',
   sheets: [
     {
       sheetName: 'Base_Clientes',
@@ -369,15 +336,15 @@ export const clientsTemplate: PageTemplate = {
         { key: 'ativos', label: 'Clientes Ativos', type: 'number', required: true },
         { key: 'novos', label: 'Novos Clientes', type: 'number', required: true },
         { key: 'perdidos', label: 'Clientes Perdidos', type: 'number', required: true },
-        { key: 'reativados', label: 'Reativados', type: 'number', required: false },
+        // churnRate = perdidos / ativos * 100 (calculado)
       ],
       sampleData: [
-        { month: 'Jan', ativos: 1482, novos: 45, perdidos: 8, reativados: 3 },
-        { month: 'Fev', ativos: 1519, novos: 42, perdidos: 5, reativados: 4 },
-        { month: 'Mar', ativos: 1556, novos: 39, perdidos: 7, reativados: 2 },
-        { month: 'Abr', ativos: 1588, novos: 48, perdidos: 6, reativados: 5 },
-        { month: 'Mai', ativos: 1625, novos: 43, perdidos: 4, reativados: 3 },
-        { month: 'Jun', ativos: 1542, novos: 52, perdidos: 6, reativados: 7 },
+        { month: 'Jan', ativos: 1482, novos: 45, perdidos: 8 },
+        { month: 'Fev', ativos: 1519, novos: 42, perdidos: 5 },
+        { month: 'Mar', ativos: 1556, novos: 39, perdidos: 7 },
+        { month: 'Abr', ativos: 1588, novos: 48, perdidos: 6 },
+        { month: 'Mai', ativos: 1625, novos: 43, perdidos: 4 },
+        { month: 'Jun', ativos: 1542, novos: 52, perdidos: 6 },
       ]
     },
     {
@@ -385,44 +352,14 @@ export const clientsTemplate: PageTemplate = {
       columns: [
         { key: 'servico', label: 'Serviço', type: 'string', required: true },
         { key: 'clientes', label: 'Clientes', type: 'number', required: true },
-        { key: 'percentual', label: 'Percentual (%)', type: 'percentage', required: false },
       ],
       sampleData: [
-        { servico: 'Contabilidade', clientes: 856, percentual: 55.5 },
-        { servico: 'BPO Estratégico', clientes: 342, percentual: 22.2 },
-        { servico: 'BPO RH', clientes: 289, percentual: 18.7 },
-        { servico: 'ClickOn', clientes: 178, percentual: 11.5 },
-        { servico: 'Certificado Digital', clientes: 445, percentual: 28.9 },
-        { servico: 'FN EUA', clientes: 67, percentual: 4.3 },
-      ]
-    },
-    {
-      sheetName: 'Produtos_Servico',
-      columns: [
-        { key: 'servico', label: 'Serviço', type: 'string', required: true },
-        { key: 'produto', label: 'Produto', type: 'string', required: true },
-        { key: 'clientes', label: 'Clientes', type: 'number', required: true },
-      ],
-      sampleData: [
-        { servico: 'Contabilidade', produto: 'Contabilidade Simples Nacional', clientes: 412 },
-        { servico: 'Contabilidade', produto: 'Contabilidade Lucro Presumido', clientes: 298 },
-        { servico: 'Contabilidade', produto: 'Contabilidade Lucro Real', clientes: 146 },
-        { servico: 'BPO Estratégico', produto: 'BPO Financeiro Completo', clientes: 156 },
-        { servico: 'BPO Estratégico', produto: 'BPO Controladoria', clientes: 98 },
-        { servico: 'BPO Estratégico', produto: 'BPO Fiscal', clientes: 88 },
-        { servico: 'BPO RH', produto: 'Folha de Pagamento', clientes: 189 },
-        { servico: 'BPO RH', produto: 'Gestão de Benefícios', clientes: 67 },
-        { servico: 'BPO RH', produto: 'Recrutamento', clientes: 33 },
-        { servico: 'ClickOn', produto: 'ClickOn Basic', clientes: 89 },
-        { servico: 'ClickOn', produto: 'ClickOn Pro', clientes: 56 },
-        { servico: 'ClickOn', produto: 'ClickOn Enterprise', clientes: 33 },
-        { servico: 'Certificado Digital', produto: 'e-CPF A1', clientes: 156 },
-        { servico: 'Certificado Digital', produto: 'e-CPF A3', clientes: 123 },
-        { servico: 'Certificado Digital', produto: 'e-CNPJ A1', clientes: 98 },
-        { servico: 'Certificado Digital', produto: 'e-CNPJ A3', clientes: 68 },
-        { servico: 'FN EUA', produto: 'LLC Formation', clientes: 34 },
-        { servico: 'FN EUA', produto: 'Bookkeeping USA', clientes: 23 },
-        { servico: 'FN EUA', produto: 'Tax Filing', clientes: 10 },
+        { servico: 'Contabilidade', clientes: 856 },
+        { servico: 'BPO Estratégico', clientes: 342 },
+        { servico: 'BPO RH', clientes: 289 },
+        { servico: 'ClickOn', clientes: 178 },
+        { servico: 'Certificado Digital', clientes: 445 },
+        { servico: 'FN EUA', clientes: 67 },
       ]
     },
     {
@@ -430,14 +367,13 @@ export const clientsTemplate: PageTemplate = {
       columns: [
         { key: 'regime', label: 'Regime Tributário', type: 'string', required: true },
         { key: 'clientes', label: 'Clientes', type: 'number', required: true },
-        { key: 'faturamentoMedio', label: 'Faturamento Médio Anual (R$)', type: 'number', required: true },
-        { key: 'percentual', label: 'Percentual (%)', type: 'percentage', required: false },
+        { key: 'faturamentoMedio', label: 'Faturamento Médio Anual (R$)', type: 'number', required: false },
       ],
       sampleData: [
-        { regime: 'Simples Nacional', clientes: 892, faturamentoMedio: 180000, percentual: 57.8 },
-        { regime: 'Lucro Presumido', clientes: 412, faturamentoMedio: 850000, percentual: 26.7 },
-        { regime: 'Lucro Real', clientes: 156, faturamentoMedio: 4500000, percentual: 10.1 },
-        { regime: 'MEI', clientes: 82, faturamentoMedio: 65000, percentual: 5.3 },
+        { regime: 'Simples Nacional', clientes: 892, faturamentoMedio: 180000 },
+        { regime: 'Lucro Presumido', clientes: 412, faturamentoMedio: 850000 },
+        { regime: 'Lucro Real', clientes: 156, faturamentoMedio: 4500000 },
+        { regime: 'MEI', clientes: 82, faturamentoMedio: 65000 },
       ]
     },
     {
@@ -445,12 +381,11 @@ export const clientsTemplate: PageTemplate = {
       columns: [
         { key: 'name', label: 'Qtd Serviços', type: 'string', required: true },
         { key: 'value', label: 'Clientes', type: 'number', required: true },
-        { key: 'percentual', label: 'Percentual (%)', type: 'percentage', required: false },
       ],
       sampleData: [
-        { name: '1 Serviço', value: 687, percentual: 44.5 },
-        { name: '2 Serviços', value: 524, percentual: 34.0 },
-        { name: '3+ Serviços', value: 331, percentual: 21.5 },
+        { name: '1 Serviço', value: 687 },
+        { name: '2 Serviços', value: 524 },
+        { name: '3+ Serviços', value: 331 },
       ]
     },
     {
@@ -458,28 +393,26 @@ export const clientsTemplate: PageTemplate = {
       columns: [
         { key: 'month', label: 'Mês', type: 'string', required: true },
         { key: 'nps', label: 'NPS Score', type: 'number', required: true },
-        { key: 'promotores', label: 'Promotores (%)', type: 'percentage', required: false },
-        { key: 'detratores', label: 'Detratores (%)', type: 'percentage', required: false },
       ],
       sampleData: [
-        { month: 'Jan', nps: 72, promotores: 65, detratores: 8 },
-        { month: 'Fev', nps: 74, promotores: 68, detratores: 7 },
-        { month: 'Mar', nps: 76, promotores: 70, detratores: 6 },
-        { month: 'Abr', nps: 78, promotores: 72, detratores: 6 },
-        { month: 'Mai', nps: 79, promotores: 73, detratores: 5 },
-        { month: 'Jun', nps: 81, promotores: 75, detratores: 5 },
+        { month: 'Jan', nps: 72 },
+        { month: 'Fev', nps: 74 },
+        { month: 'Mar', nps: 76 },
+        { month: 'Abr', nps: 78 },
+        { month: 'Mai', nps: 79 },
+        { month: 'Jun', nps: 81 },
       ]
     }
   ]
 };
 
 // ============================================
-// Services Page Template - COMPLETE
+// Services Page Template - SIMPLIFIED
 // ============================================
 export const servicesTemplate: PageTemplate = {
   pageId: 'services',
   pageName: 'Margem de Serviços',
-  description: 'Margem por linha de serviço e evolução mensal',
+  description: 'Receita e custo por serviço (lucro e margem são calculados automaticamente)',
   sheets: [
     {
       sheetName: 'Margem_Servicos',
@@ -487,20 +420,20 @@ export const servicesTemplate: PageTemplate = {
         { key: 'servico', label: 'Serviço', type: 'string', required: true },
         { key: 'receita', label: 'Receita (R$)', type: 'number', required: true },
         { key: 'custo', label: 'Custo (R$)', type: 'number', required: true },
-        { key: 'lucro', label: 'Lucro (R$)', type: 'number', required: false },
-        { key: 'margem', label: 'Margem (%)', type: 'percentage', required: false },
-        { key: 'clientes', label: 'Clientes', type: 'number', required: true },
+        { key: 'clientes', label: 'Clientes', type: 'number', required: false },
+        // lucro = receita - custo (calculado)
+        // margem = (receita - custo) / receita * 100 (calculado)
       ],
       sampleData: [
-        { servico: 'Contabilidade Consultiva', receita: 475200, custo: 342144, lucro: 133056, margem: 28.0, clientes: 856 },
-        { servico: 'BPO Estratégico', receita: 119600, custo: 77740, lucro: 41860, margem: 35.0, clientes: 342 },
-        { servico: 'BPO RH', receita: 92480, custo: 62886, lucro: 29594, margem: 32.0, clientes: 289 },
-        { servico: 'BPO Financeiro', receita: 78400, custo: 51184, lucro: 27216, margem: 34.7, clientes: 198 },
-        { servico: 'ClickOn Treinamentos', receita: 53400, custo: 30972, lucro: 22428, margem: 42.0, clientes: 178 },
-        { servico: 'Tributação e Legalização', receita: 89200, custo: 58348, lucro: 30852, margem: 34.6, clientes: 267 },
-        { servico: 'Soluções de RH', receita: 67800, custo: 44070, lucro: 23730, margem: 35.0, clientes: 189 },
-        { servico: 'Certificado Digital', receita: 44600, custo: 36568, lucro: 8032, margem: 18.0, clientes: 445 },
-        { servico: 'FN EUA', receita: 92400, custo: 58344, lucro: 34056, margem: 36.9, clientes: 67 },
+        { servico: 'Contabilidade Consultiva', receita: 475200, custo: 342144, clientes: 856 },
+        { servico: 'BPO Estratégico', receita: 119600, custo: 77740, clientes: 342 },
+        { servico: 'BPO RH', receita: 92480, custo: 62886, clientes: 289 },
+        { servico: 'BPO Financeiro', receita: 78400, custo: 51184, clientes: 198 },
+        { servico: 'ClickOn Treinamentos', receita: 53400, custo: 30972, clientes: 178 },
+        { servico: 'Tributação e Legalização', receita: 89200, custo: 58348, clientes: 267 },
+        { servico: 'Soluções de RH', receita: 67800, custo: 44070, clientes: 189 },
+        { servico: 'Certificado Digital', receita: 44600, custo: 36568, clientes: 445 },
+        { servico: 'FN EUA', receita: 92400, custo: 58344, clientes: 67 },
       ]
     },
     {
@@ -525,21 +458,21 @@ export const servicesTemplate: PageTemplate = {
 };
 
 // ============================================
-// Overview Page Template - COMPLETE
+// Overview Page Template - SIMPLIFIED
 // ============================================
 export const overviewTemplate: PageTemplate = {
   pageId: 'overview',
   pageName: 'Visão Geral',
-  description: 'KPIs executivos: MRR, composição de crescimento e produtividade',
+  description: 'KPIs executivos e MRR (variações são calculadas automaticamente)',
   sheets: [
     {
       sheetName: 'MRR',
       columns: [
         { key: 'month', label: 'Mês', type: 'string', required: true },
-        { key: 'mrr', label: 'MRR Total (R$)', type: 'number', required: true },
-        { key: 'novos', label: 'Novos Clientes (R$)', type: 'number', required: true },
-        { key: 'churn', label: 'Churn (R$)', type: 'number', required: true },
-        { key: 'expansao', label: 'Expansão (R$)', type: 'number', required: true },
+        { key: 'mrr', label: 'MRR Total (R$)', type: 'number', required: true, description: 'Receita recorrente mensal' },
+        { key: 'novos', label: 'Novos Clientes (R$)', type: 'number', required: false },
+        { key: 'churn', label: 'Churn (R$)', type: 'number', required: false, description: 'Valor negativo de perdas' },
+        { key: 'expansao', label: 'Expansão (R$)', type: 'number', required: false },
       ],
       sampleData: [
         { month: 'Jan', mrr: 850000, novos: 45000, churn: -12000, expansao: 15000 },
@@ -551,35 +484,20 @@ export const overviewTemplate: PageTemplate = {
       ]
     },
     {
-      sheetName: 'Produtividade',
-      columns: [
-        { key: 'month', label: 'Mês', type: 'string', required: true },
-        { key: 'receita', label: 'Receita/Colaborador (R$)', type: 'number', required: true },
-      ],
-      sampleData: [
-        { month: 'Jan', receita: 8500 },
-        { month: 'Fev', receita: 8980 },
-        { month: 'Mar', receita: 9450 },
-        { month: 'Abr', receita: 10040 },
-        { month: 'Mai', receita: 10570 },
-        { month: 'Jun', receita: 11250 },
-      ]
-    },
-    {
       sheetName: 'KPIs',
       columns: [
         { key: 'indicador', label: 'Indicador', type: 'string', required: true },
         { key: 'valor', label: 'Valor Atual', type: 'string', required: true },
         { key: 'anterior', label: 'Valor Anterior', type: 'string', required: false },
-        { key: 'variacao', label: 'Variação (%)', type: 'percentage', required: false },
+        // variacao = (atual - anterior) / anterior * 100 (calculado)
       ],
       sampleData: [
-        { indicador: 'MRR Atual', valor: '1125000', anterior: '1057000', variacao: 6.4 },
-        { indicador: 'Churn Rate', valor: '0.67', anterior: '0.95', variacao: -29.5 },
-        { indicador: 'LTV/CAC Ratio', valor: '4.37', anterior: '3.61', variacao: 21.1 },
-        { indicador: 'Receita/Colaborador', valor: '11250', anterior: '10570', variacao: 6.4 },
-        { indicador: 'Clientes Ativos', valor: '1542', anterior: '1488', variacao: 3.6 },
-        { indicador: 'Inadimplência', valor: '3.2', anterior: '2.8', variacao: 14.3 },
+        { indicador: 'MRR Atual', valor: '1125000', anterior: '1057000' },
+        { indicador: 'Churn Rate', valor: '0.67', anterior: '0.95' },
+        { indicador: 'LTV/CAC Ratio', valor: '4.37', anterior: '3.61' },
+        { indicador: 'Receita/Colaborador', valor: '11250', anterior: '10570' },
+        { indicador: 'Clientes Ativos', valor: '1542', anterior: '1488' },
+        { indicador: 'Inadimplência', valor: '3.2', anterior: '2.8' },
       ]
     }
   ]
@@ -601,10 +519,13 @@ export const downloadTemplate = (template: PageTemplate): void => {
   const wb = XLSX.utils.book_new();
   
   template.sheets.forEach(sheet => {
+    // Only include non-computed columns in sample data
     const ws = XLSX.utils.json_to_sheet(sheet.sampleData);
     
     // Add column widths
-    const colWidths = sheet.columns.map(col => ({ wch: Math.max(col.label.length + 2, 15) }));
+    const colWidths = sheet.columns
+      .filter(col => !col.computed)
+      .map(col => ({ wch: Math.max(col.label.length + 2, 15) }));
     ws['!cols'] = colWidths;
     
     XLSX.utils.book_append_sheet(wb, ws, sheet.sheetName);
@@ -642,31 +563,121 @@ export const parseUploadedFile = async (file: File): Promise<Record<string, any[
   });
 };
 
-// Validate data against template
-export const validateData = (data: Record<string, any[]>, template: PageTemplate): { valid: boolean; errors: string[] } => {
+// Smart validation with column mapping
+export interface ValidationResult {
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
+  mappingResults: Record<string, MappingResult>;
+  needsUserReview: boolean;
+}
+
+export const validateDataSmart = (
+  data: Record<string, any[]>, 
+  template: PageTemplate
+): ValidationResult => {
   const errors: string[] = [];
+  const warnings: string[] = [];
+  const mappingResults: Record<string, MappingResult> = {};
+  let needsUserReview = false;
   
   if (Object.keys(data).length === 0) {
-    return { valid: false, errors: ['Arquivo vazio ou sem dados válidos.'] };
+    return { 
+      valid: false, 
+      errors: ['Arquivo vazio ou sem dados válidos.'],
+      warnings: [],
+      mappingResults: {},
+      needsUserReview: false
+    };
   }
   
-  // Check if at least the first sheet has data
-  const firstSheetName = template.sheets[0].sheetName;
-  const possibleNames = [firstSheetName, firstSheetName.replace(/_/g, ' '), Object.keys(data)[0]];
-  
-  let foundFirstSheet = false;
-  for (const name of possibleNames) {
-    if (data[name] && data[name].length > 0) {
-      foundFirstSheet = true;
-      break;
+  // Check each expected sheet
+  for (const sheet of template.sheets) {
+    const sheetData = getSheetData(data, sheet.sheetName);
+    
+    if (sheetData.length === 0) {
+      // Only error if it's the first/main sheet
+      if (sheet === template.sheets[0]) {
+        errors.push(`Planilha principal "${sheet.sheetName}" não encontrada ou vazia.`);
+      } else {
+        warnings.push(`Planilha "${sheet.sheetName}" não encontrada - será usada com dados de exemplo.`);
+      }
+      continue;
+    }
+    
+    // Get source columns from data
+    const sourceColumns = Object.keys(sheetData[0] || {});
+    
+    // Generate mapping
+    const mapping = generateMappings(sourceColumns, sheet.columns);
+    mappingResults[sheet.sheetName] = mapping;
+    
+    if (mapping.needsUserReview) {
+      needsUserReview = true;
+    }
+    
+    // Check for missing required fields
+    if (mapping.missingRequired.length > 0) {
+      const missingLabels = mapping.missingRequired.map(key => {
+        const col = sheet.columns.find(c => c.key === key);
+        return col?.label || key;
+      });
+      warnings.push(`"${sheet.sheetName}": campos não encontrados: ${missingLabels.join(', ')}`);
+    }
+    
+    // Check for unrecognized columns
+    if (mapping.unmappedSource.length > 0) {
+      warnings.push(`"${sheet.sheetName}": colunas não reconhecidas: ${mapping.unmappedSource.join(', ')}`);
     }
   }
   
-  if (!foundFirstSheet) {
-    errors.push(`Planilha principal "${firstSheetName}" não encontrada ou vazia.`);
+  return { 
+    valid: errors.length === 0, 
+    errors, 
+    warnings,
+    mappingResults,
+    needsUserReview
+  };
+};
+
+// Legacy validation (for backward compatibility)
+export const validateData = (
+  data: Record<string, any[]>, 
+  template: PageTemplate
+): { valid: boolean; errors: string[] } => {
+  const result = validateDataSmart(data, template);
+  return { valid: result.valid, errors: result.errors };
+};
+
+// Transform data using mappings and apply computed fields
+export const transformData = (
+  data: Record<string, any[]>,
+  template: PageTemplate,
+  customMappings?: Record<string, ColumnMapping[]>
+): Record<string, any[]> => {
+  const result: Record<string, any[]> = {};
+  
+  for (const sheet of template.sheets) {
+    const sheetData = getSheetData(data, sheet.sheetName);
+    
+    if (sheetData.length === 0) {
+      result[sheet.sheetName] = sheet.sampleData;
+      continue;
+    }
+    
+    // Apply custom mappings if provided
+    let transformedData = sheetData;
+    if (customMappings && customMappings[sheet.sheetName]) {
+      transformedData = applyMappings(sheetData, customMappings[sheet.sheetName]);
+    }
+    
+    // Apply computed fields
+    transformedData = applyComputedFields(transformedData, template.pageId);
+    
+    result[sheet.sheetName] = transformedData;
   }
   
-  return { valid: errors.length === 0, errors };
+  return result;
 };
 
 // Helper to get sheet data by name with fallbacks
