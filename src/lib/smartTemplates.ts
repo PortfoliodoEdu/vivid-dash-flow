@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { generateMappings, type ColumnMapping } from './columnMapping';
 
 // ==========================================
 // FILOSOFIA: DADOS BRUTOS, NÃO CALCULADOS
@@ -280,6 +281,20 @@ export const generateSmartTemplate = (templateId: string): ArrayBuffer => {
 };
 
 // Analisa arquivo uploaded e retorna resumo
+export interface SheetMappingAnalysis {
+  sourceColumns: string[];
+  targetColumns: SmartColumn[];
+  suggestedMappings: {
+    sourceColumn: string;
+    targetKey: string | null;
+    targetLabel: string | null;
+    confidence: number;
+    isRequired: boolean;
+  }[];
+  needsReview: boolean;
+  missingRequired: string[];
+}
+
 export interface FileAnalysis {
   fileName: string;
   totalRows: number;
@@ -288,13 +303,17 @@ export interface FileAnalysis {
     rows: number;
     columns: string[];
     preview: Record<string, any>[];
+    matchedTemplate: string | null;
+    mappingAnalysis: SheetMappingAnalysis | null;
   }[];
   warnings: string[];
+  needsColumnMapping: boolean;
 }
 
 export const analyzeUploadedFile = async (file: File, templateId: string): Promise<FileAnalysis> => {
   const template = smartTemplates[templateId];
   const warnings: string[] = [];
+  let needsColumnMapping = false;
 
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -309,19 +328,58 @@ export const analyzeUploadedFile = async (file: File, templateId: string): Promi
           const jsonData = XLSX.utils.sheet_to_json(worksheet) as Record<string, any>[];
           const columns = jsonData.length > 0 ? Object.keys(jsonData[0]) : [];
 
-          // Verifica colunas esperadas
+          // Find matching template sheet
           const expectedSheet = template?.sheets.find(s => 
             s.name.toLowerCase() === sheetName.toLowerCase() ||
-            s.name.replace(/_/g, ' ').toLowerCase() === sheetName.toLowerCase()
+            s.name.replace(/_/g, ' ').toLowerCase() === sheetName.toLowerCase() ||
+            s.name.replace(/_/g, '').toLowerCase() === sheetName.replace(/[\s_-]/g, '').toLowerCase()
           );
 
-          if (expectedSheet) {
-            const requiredCols = expectedSheet.columns.filter(c => c.required).map(c => c.key);
-            const missingCols = requiredCols.filter(col => 
-              !columns.some(c => c.toLowerCase() === col.toLowerCase())
-            );
-            if (missingCols.length > 0) {
-              warnings.push(`Aba "${sheetName}": colunas obrigatórias não encontradas: ${missingCols.join(', ')}`);
+          let mappingAnalysis: SheetMappingAnalysis | null = null;
+
+          if (expectedSheet && columns.length > 0) {
+            // Generate smart mappings
+            const targetColumns = expectedSheet.columns.map(c => ({
+              key: c.key,
+              label: c.label,
+              required: c.required
+            }));
+            
+            const mappingResult = generateMappings(columns, targetColumns);
+            
+            // Build suggested mappings
+            const suggestedMappings = columns.map(sourceCol => {
+              const mapping = mappingResult.mappings.find(m => m.sourceColumn === sourceCol);
+              const targetCol = mapping ? expectedSheet.columns.find(c => c.key === mapping.targetKey) : null;
+              
+              return {
+                sourceColumn: sourceCol,
+                targetKey: mapping?.targetKey || null,
+                targetLabel: targetCol?.label || null,
+                confidence: mapping?.confidence || 0,
+                isRequired: targetCol?.required || false
+              };
+            });
+
+            // Check if any mapping needs review
+            const hasLowConfidence = suggestedMappings.some(m => m.targetKey && m.confidence < 0.9);
+            const hasMissing = mappingResult.missingRequired.length > 0;
+            const hasUnmapped = columns.length > suggestedMappings.filter(m => m.targetKey).length;
+
+            mappingAnalysis = {
+              sourceColumns: columns,
+              targetColumns: expectedSheet.columns,
+              suggestedMappings,
+              needsReview: hasLowConfidence || hasMissing || hasUnmapped,
+              missingRequired: mappingResult.missingRequired
+            };
+
+            if (mappingAnalysis.needsReview) {
+              needsColumnMapping = true;
+            }
+
+            if (mappingResult.missingRequired.length > 0) {
+              warnings.push(`Aba "${sheetName}": colunas obrigatórias não reconhecidas: ${mappingResult.missingRequired.join(', ')}`);
             }
           }
 
@@ -329,7 +387,9 @@ export const analyzeUploadedFile = async (file: File, templateId: string): Promi
             name: sheetName,
             rows: jsonData.length,
             columns,
-            preview: jsonData.slice(0, 3) // Primeiras 3 linhas para preview
+            preview: jsonData.slice(0, 3),
+            matchedTemplate: expectedSheet?.name || null,
+            mappingAnalysis
           };
         });
 
@@ -339,7 +399,8 @@ export const analyzeUploadedFile = async (file: File, templateId: string): Promi
           fileName: file.name,
           totalRows,
           sheets,
-          warnings
+          warnings,
+          needsColumnMapping
         });
       } catch (error) {
         reject(new Error('Erro ao processar arquivo. Verifique se é um XLSX/CSV válido.'));
@@ -351,8 +412,11 @@ export const analyzeUploadedFile = async (file: File, templateId: string): Promi
   });
 };
 
-// Processa e transforma os dados uploaded
-export const processUploadedData = async (file: File): Promise<Record<string, any[]>> => {
+// Processa e transforma os dados uploaded aplicando os mapeamentos
+export const processUploadedData = async (
+  file: File, 
+  mappings?: Record<string, { sourceColumn: string; targetKey: string }[]>
+): Promise<Record<string, any[]>> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     
@@ -365,7 +429,23 @@ export const processUploadedData = async (file: File): Promise<Record<string, an
         
         workbook.SheetNames.forEach(sheetName => {
           const worksheet = workbook.Sheets[sheetName];
-          result[sheetName] = XLSX.utils.sheet_to_json(worksheet);
+          const rawData = XLSX.utils.sheet_to_json(worksheet) as Record<string, any>[];
+          
+          // Apply mappings if provided
+          const sheetMappings = mappings?.[sheetName];
+          if (sheetMappings && sheetMappings.length > 0) {
+            result[sheetName] = rawData.map(row => {
+              const transformedRow: Record<string, any> = {};
+              for (const mapping of sheetMappings) {
+                if (row[mapping.sourceColumn] !== undefined) {
+                  transformedRow[mapping.targetKey] = row[mapping.sourceColumn];
+                }
+              }
+              return transformedRow;
+            });
+          } else {
+            result[sheetName] = rawData;
+          }
         });
 
         resolve(result);
