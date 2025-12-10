@@ -1,19 +1,14 @@
+import { useState, useEffect } from "react";
 import { ExpandableChart } from "@/components/ExpandableChart";
 import { CustomTooltip } from "@/components/CustomTooltip";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend, AreaChart, Area } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from "recharts";
 import { Card } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
+import { useData } from "@/contexts/DataContext";
+import DataUploader from "@/components/DataUploader";
 
-const fluxoCaixaData = [
-  { month: "Jan", entradas: 450000, saidas: 382353, saldo: 67647 },
-  { month: "Fev", entradas: 520000, saidas: 430056, saldo: 89944 },
-  { month: "Mar", entradas: 480000, saidas: 413784, saldo: 66216 },
-  { month: "Abr", entradas: 610000, saidas: 504470, saldo: 105530 },
-  { month: "Mai", entradas: 550000, saidas: 469986, saldo: 80014 },
-  { month: "Jun", entradas: 670000, saidas: 554090, saldo: 115910 },
-];
-
-const categoriaDespesas = [
+// Default data for expenses and projections (these could also be separate uploads)
+const defaultCategoriaDespesas = [
   { categoria: "Pessoal", valor: 195000, percentual: 35.2 },
   { categoria: "Marketing", valor: 131000, percentual: 23.6 },
   { categoria: "Operacional", valor: 88500, percentual: 16.0 },
@@ -21,7 +16,7 @@ const categoriaDespesas = [
   { categoria: "Diversos", valor: 49140, percentual: 8.9 },
 ];
 
-const previsaoData = [
+const defaultPrevisaoData = [
   { month: "Jul", previsto: 720000, conservador: 680000 },
   { month: "Ago", previsto: 750000, conservador: 700000 },
   { month: "Set", previsto: 780000, conservador: 720000 },
@@ -29,19 +24,43 @@ const previsaoData = [
 ];
 
 export default function Cashflow() {
-  const saldoAtual = fluxoCaixaData[fluxoCaixaData.length - 1].saldo;
-  const saldoAnterior = fluxoCaixaData[fluxoCaixaData.length - 2].saldo;
-  const variacao = ((saldoAtual - saldoAnterior) / saldoAnterior * 100).toFixed(1);
+  const { getData } = useData();
+  const [refreshKey, setRefreshKey] = useState(0);
+  
+  // Get data from context (uploaded or sample)
+  const rawData = getData('cashflow');
+  
+  // Transform data to match expected format
+  const fluxoCaixaData = rawData.map(item => ({
+    month: item.mes || item.month || '',
+    entradas: Number(item.entradas) || 0,
+    saidas: Number(item.saidas) || 0,
+    saldo: item.saldo !== undefined ? Number(item.saldo) : (Number(item.entradas) || 0) - (Number(item.saidas) || 0)
+  }));
+
+  const categoriaDespesas = defaultCategoriaDespesas;
+  const previsaoData = defaultPrevisaoData;
+
+  const saldoAtual = fluxoCaixaData.length > 0 ? fluxoCaixaData[fluxoCaixaData.length - 1].saldo : 0;
+  const saldoAnterior = fluxoCaixaData.length > 1 ? fluxoCaixaData[fluxoCaixaData.length - 2].saldo : saldoAtual;
+  const variacao = saldoAnterior !== 0 ? ((saldoAtual - saldoAnterior) / saldoAnterior * 100).toFixed(1) : '0';
   
   const saldoAcumulado = fluxoCaixaData.reduce((acc, curr) => acc + curr.saldo, 0);
   const totalEntradas = fluxoCaixaData.reduce((acc, curr) => acc + curr.entradas, 0);
   const totalSaidas = fluxoCaixaData.reduce((acc, curr) => acc + curr.saidas, 0);
 
+  const handleDataUpdated = () => {
+    setRefreshKey(prev => prev + 1);
+  };
+
   return (
-    <div className="p-8 space-y-8 animate-fade-in">
-      <div>
-        <h1 className="text-4xl font-bold text-foreground mb-2">Fluxo de Caixa</h1>
-        <p className="text-muted-foreground">Acompanhamento de entradas, saídas e projeções</p>
+    <div className="p-8 space-y-8 animate-fade-in" key={refreshKey}>
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Fluxo de Caixa</h1>
+          <p className="text-muted-foreground">Acompanhamento de entradas, saídas e projeções</p>
+        </div>
+        <DataUploader pageId="cashflow" onDataUpdated={handleDataUpdated} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
