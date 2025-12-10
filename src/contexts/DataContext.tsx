@@ -47,13 +47,33 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     loadAllData();
   }, []);
 
-  const getData = (pageId: string): any[] => {
+  const getData = (pageId: string, sheetName?: string): any => {
     const pageData = pageDataMap[pageId];
-    if (pageData) {
-      return pageData.data;
+    const template = allTemplates[pageId];
+    
+    if (pageData && pageData.data) {
+      const data = pageData.data;
+      // If data is a multi-sheet object
+      if (!Array.isArray(data) && typeof data === 'object') {
+        if (sheetName) {
+          return (data as Record<string, any[]>)[sheetName] || [];
+        }
+        const keys = Object.keys(data);
+        return keys.length > 0 ? (data as Record<string, any[]>)[keys[0]] : [];
+      }
+      // If data is array (backward compatibility)
+      return data;
     }
-    // Return sample data if no uploaded data
-    return allTemplates[pageId]?.sampleData || [];
+    
+    // Return sample data from template
+    if (template) {
+      if (sheetName) {
+        const sheet = template.sheets.find(s => s.sheetName === sheetName);
+        return sheet?.sampleData || [];
+      }
+      return template.sheets[0]?.sampleData || [];
+    }
+    return [];
   };
 
   const setData = async (pageId: string, data: any[], fileName: string): Promise<void> => {
