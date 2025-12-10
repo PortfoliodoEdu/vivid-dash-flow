@@ -1,5 +1,9 @@
 import React, { useRef, useState } from 'react';
-import { Upload, Download, FileSpreadsheet, Trash2, Check, AlertCircle, Info, AlertTriangle } from 'lucide-react';
+import { 
+  Upload, Download, FileSpreadsheet, Trash2, Check, AlertCircle, 
+  Info, AlertTriangle, ChevronDown, ChevronRight, ExternalLink,
+  Table, Hash, Type, Calendar, Percent, Asterisk
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -16,6 +20,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { useData } from '@/contexts/DataContext';
 import { 
@@ -24,15 +35,48 @@ import {
   parseUploadedFile, 
   validateDataSmart, 
   transformData,
-  ValidationResult 
+  ValidationResult,
+  TemplateColumn
 } from '@/lib/templates';
-import { ColumnMapping, MappingResult } from '@/lib/columnMapping';
+import { ColumnMapping } from '@/lib/columnMapping';
 import ColumnMapperDialog from './ColumnMapperDialog';
 
 interface DataUploaderProps {
   pageId: string;
   onDataUpdated?: () => void;
 }
+
+// Google Sheets template links (can be configured per page)
+const googleSheetsLinks: Record<string, string> = {
+  hr: 'https://docs.google.com/spreadsheets/d/1example_hr/copy',
+  cashflow: 'https://docs.google.com/spreadsheets/d/1example_cashflow/copy',
+  financial: 'https://docs.google.com/spreadsheets/d/1example_financial/copy',
+  sales: 'https://docs.google.com/spreadsheets/d/1example_sales/copy',
+  marketing: 'https://docs.google.com/spreadsheets/d/1example_marketing/copy',
+  clients: 'https://docs.google.com/spreadsheets/d/1example_clients/copy',
+  services: 'https://docs.google.com/spreadsheets/d/1example_services/copy',
+  overview: 'https://docs.google.com/spreadsheets/d/1example_overview/copy',
+};
+
+const getTypeIcon = (type: TemplateColumn['type']) => {
+  switch (type) {
+    case 'number': return <Hash className="h-3 w-3" />;
+    case 'string': return <Type className="h-3 w-3" />;
+    case 'date': return <Calendar className="h-3 w-3" />;
+    case 'percentage': return <Percent className="h-3 w-3" />;
+    default: return <Type className="h-3 w-3" />;
+  }
+};
+
+const getTypeLabel = (type: TemplateColumn['type']) => {
+  switch (type) {
+    case 'number': return 'Número';
+    case 'string': return 'Texto';
+    case 'date': return 'Data';
+    case 'percentage': return 'Percentual';
+    default: return type;
+  }
+};
 
 const DataUploader: React.FC<DataUploaderProps> = ({ pageId, onDataUpdated }) => {
   const { setData, clearData, getUploadInfo } = useData();
@@ -45,14 +89,25 @@ const DataUploader: React.FC<DataUploaderProps> = ({ pageId, onDataUpdated }) =>
   const [pendingFileName, setPendingFileName] = useState<string>('');
   const [pendingValidation, setPendingValidation] = useState<ValidationResult | null>(null);
   const [currentSheetIndex, setCurrentSheetIndex] = useState(0);
+  const [expandedSheets, setExpandedSheets] = useState<string[]>([]);
+  const [showPreview, setShowPreview] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const template = allTemplates[pageId];
   const uploadInfo = getUploadInfo(pageId);
+  const googleSheetLink = googleSheetsLinks[pageId];
 
   if (!template) {
     return null;
   }
+
+  const toggleSheetExpanded = (sheetName: string) => {
+    setExpandedSheets(prev => 
+      prev.includes(sheetName) 
+        ? prev.filter(s => s !== sheetName)
+        : [...prev, sheetName]
+    );
+  };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -72,19 +127,16 @@ const DataUploader: React.FC<DataUploaderProps> = ({ pageId, onDataUpdated }) =>
         return;
       }
 
-      // Show warnings if any
       if (validation.warnings.length > 0) {
         setUploadWarnings(validation.warnings);
       }
 
-      // If needs user review for column mapping
       if (validation.needsUserReview) {
         setPendingData(data);
         setPendingFileName(file.name);
         setPendingValidation(validation);
         setCurrentSheetIndex(0);
         
-        // Find first sheet that needs review
         const sheetsNeedingReview = Object.entries(validation.mappingResults)
           .filter(([_, result]) => result.needsUserReview);
         
@@ -94,7 +146,6 @@ const DataUploader: React.FC<DataUploaderProps> = ({ pageId, onDataUpdated }) =>
         }
       }
 
-      // No review needed, process directly
       await processAndSaveData(data, file.name, validation);
       
     } catch (error) {
@@ -115,10 +166,8 @@ const DataUploader: React.FC<DataUploaderProps> = ({ pageId, onDataUpdated }) =>
     validation: ValidationResult,
     customMappings?: Record<string, ColumnMapping[]>
   ) => {
-    // Transform data with mappings and computed fields
     const transformedData = transformData(rawData, template, customMappings);
     
-    // Store the entire multi-sheet data object
     await setData(pageId, transformedData as any, fileName);
     const totalRecords = Object.values(transformedData).reduce((sum, arr) => sum + arr.length, 0);
     toast.success(`Dados carregados: ${totalRecords} registros em ${Object.keys(transformedData).length} planilha(s)`);
@@ -139,23 +188,18 @@ const DataUploader: React.FC<DataUploaderProps> = ({ pageId, onDataUpdated }) =>
     
     const currentSheetName = sheetsNeedingReview[currentSheetIndex]?.[0];
     
-    // Store the mapping for current sheet
     const customMappings: Record<string, ColumnMapping[]> = {
       [currentSheetName]: mappings
     };
     
-    // Check if there are more sheets to review
     if (currentSheetIndex < sheetsNeedingReview.length - 1) {
       setCurrentSheetIndex(prev => prev + 1);
-      // Keep dialog open for next sheet
       return;
     }
     
-    // All sheets reviewed, process data
     setShowMapperDialog(false);
     await processAndSaveData(pendingData, pendingFileName, pendingValidation, customMappings);
     
-    // Reset state
     setPendingData(null);
     setPendingFileName('');
     setPendingValidation(null);
@@ -176,6 +220,13 @@ const DataUploader: React.FC<DataUploaderProps> = ({ pageId, onDataUpdated }) =>
     toast.success('Template baixado com sucesso');
   };
 
+  const handleOpenGoogleSheets = () => {
+    if (googleSheetLink) {
+      window.open(googleSheetLink, '_blank');
+      toast.info('Aberto no Google Sheets - faça uma cópia para editar');
+    }
+  };
+
   const handleClearData = async () => {
     await clearData(pageId);
     toast.info('Dados removidos. Usando dados de exemplo.');
@@ -192,7 +243,6 @@ const DataUploader: React.FC<DataUploaderProps> = ({ pageId, onDataUpdated }) =>
     });
   };
 
-  // Get current sheet for mapping dialog
   const getCurrentSheetForMapping = () => {
     if (!pendingValidation) return null;
     
@@ -212,6 +262,21 @@ const DataUploader: React.FC<DataUploaderProps> = ({ pageId, onDataUpdated }) =>
   };
 
   const currentSheetMapping = getCurrentSheetForMapping();
+
+  // Count required vs optional columns
+  const getTotalColumns = () => {
+    let required = 0;
+    let optional = 0;
+    template.sheets.forEach(sheet => {
+      sheet.columns.forEach(col => {
+        if (col.required) required++;
+        else optional++;
+      });
+    });
+    return { required, optional };
+  };
+
+  const columnCounts = getTotalColumns();
 
   return (
     <>
@@ -239,8 +304,8 @@ const DataUploader: React.FC<DataUploaderProps> = ({ pageId, onDataUpdated }) =>
           </Tooltip>
         </TooltipProvider>
 
-        <DialogContent className="sm:max-w-lg bg-card border-border">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-2xl bg-card border-border max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader className="shrink-0">
             <DialogTitle className="text-foreground flex items-center gap-2">
               <FileSpreadsheet className="h-5 w-5 text-primary" />
               {template.pageName}
@@ -250,7 +315,7 @@ const DataUploader: React.FC<DataUploaderProps> = ({ pageId, onDataUpdated }) =>
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
+          <div className="flex-1 overflow-y-auto space-y-4 py-4 pr-2">
             {/* Current Status */}
             {uploadInfo && (
               <Card className="p-3 bg-green-500/10 border-green-500/30">
@@ -295,68 +360,182 @@ const DataUploader: React.FC<DataUploaderProps> = ({ pageId, onDataUpdated }) =>
               </Card>
             )}
 
-            {/* Template Info */}
-            <Card className="p-3 bg-muted/30 border-border/50">
-              <div className="flex items-start gap-2">
-                <Info className="h-4 w-4 text-primary mt-0.5" />
-                <div className="text-sm text-muted-foreground">
-                  <p className="font-medium text-foreground mb-1">Planilhas esperadas:</p>
-                  <div className="flex flex-wrap gap-1 mb-2">
-                    {template.sheets.map(sheet => (
-                      <span 
-                        key={sheet.sheetName}
-                        className="px-2 py-0.5 rounded text-xs bg-primary/20 text-primary"
-                      >
-                        {sheet.sheetName}
-                      </span>
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground/70">
-                    💡 Campos calculados (saldo, margem, ROI, etc.) são preenchidos automaticamente
-                  </p>
+            {/* Sheet Preview Section */}
+            <div className="space-y-3">
+              <div 
+                className="flex items-center justify-between cursor-pointer"
+                onClick={() => setShowPreview(!showPreview)}
+              >
+                <div className="flex items-center gap-2">
+                  <Table className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-foreground">
+                    Estrutura das Planilhas
+                  </span>
+                  <Badge variant="secondary" className="text-xs">
+                    {template.sheets.length} aba{template.sheets.length > 1 ? 's' : ''}
+                  </Badge>
                 </div>
+                {showPreview ? (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                )}
               </div>
-            </Card>
 
-            {/* Actions */}
-            <div className="flex flex-col gap-2">
-              <Button
-                onClick={handleDownloadTemplate}
-                variant="outline"
-                className="w-full gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Baixar Template (com dados exemplo)
-              </Button>
+              {showPreview && (
+                <div className="space-y-2">
+                  {/* Summary */}
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground px-2">
+                    <span className="flex items-center gap-1">
+                      <Asterisk className="h-3 w-3 text-destructive" />
+                      {columnCounts.required} campos obrigatórios
+                    </span>
+                    <span>{columnCounts.optional} opcionais</span>
+                    <span className="text-primary">✨ Campos calculados são automáticos</span>
+                  </div>
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-
-              <Button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-                className="w-full gap-2 bg-primary hover:bg-primary/90"
-              >
-                <Upload className="h-4 w-4" />
-                {isUploading ? 'Processando...' : 'Enviar Planilha'}
-              </Button>
-
-              {uploadInfo && (
-                <Button
-                  onClick={handleClearData}
-                  variant="ghost"
-                  className="w-full gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Remover dados e usar exemplo
-                </Button>
+                  {/* Sheet Details */}
+                  {template.sheets.map((sheet) => (
+                    <Collapsible 
+                      key={sheet.sheetName}
+                      open={expandedSheets.includes(sheet.sheetName)}
+                      onOpenChange={() => toggleSheetExpanded(sheet.sheetName)}
+                    >
+                      <Card className="border-border/50 overflow-hidden">
+                        <CollapsibleTrigger className="w-full">
+                          <div className="flex items-center justify-between p-3 hover:bg-muted/30 transition-colors">
+                            <div className="flex items-center gap-2">
+                              {expandedSheets.includes(sheet.sheetName) ? (
+                                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                              )}
+                              <span className="font-medium text-sm text-foreground">
+                                {sheet.sheetName.replace(/_/g, ' ')}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs">
+                                {sheet.columns.filter(c => c.required).length} obrigatórios
+                              </Badge>
+                              <Badge variant="outline" className="text-xs text-muted-foreground">
+                                {sheet.sampleData.length} linhas exemplo
+                              </Badge>
+                            </div>
+                          </div>
+                        </CollapsibleTrigger>
+                        
+                        <CollapsibleContent>
+                          <Separator />
+                          <div className="p-3 bg-muted/20">
+                            <div className="grid gap-2">
+                              {sheet.columns.map((col) => (
+                                <div 
+                                  key={col.key}
+                                  className="flex items-start gap-3 text-sm"
+                                >
+                                  <div className="flex items-center gap-1 min-w-[100px]">
+                                    {col.required && (
+                                      <Asterisk className="h-3 w-3 text-destructive shrink-0" />
+                                    )}
+                                    <span className={`font-mono text-xs ${col.required ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                      {col.label}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-1 text-muted-foreground shrink-0">
+                                    {getTypeIcon(col.type)}
+                                    <span className="text-xs">{getTypeLabel(col.type)}</span>
+                                  </div>
+                                  {col.description && (
+                                    <span className="text-xs text-muted-foreground/70 truncate">
+                                      {col.description}
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </CollapsibleContent>
+                      </Card>
+                    </Collapsible>
+                  ))}
+                </div>
               )}
             </div>
+
+            <Separator />
+
+            {/* Download Options */}
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Baixe o template ou use o Google Sheets:
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  onClick={handleDownloadTemplate}
+                  variant="outline"
+                  className="w-full gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Baixar Excel (.xlsx)
+                </Button>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        onClick={handleOpenGoogleSheets}
+                        variant="outline"
+                        className="w-full gap-2"
+                        disabled={!googleSheetLink || googleSheetLink.includes('example')}
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Google Sheets
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {googleSheetLink?.includes('example') 
+                        ? 'Link do Google Sheets ainda não configurado'
+                        : 'Abrir template no Google Sheets'
+                      }
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
+          </div>
+
+          {/* Fixed Footer Actions */}
+          <div className="shrink-0 pt-4 border-t border-border space-y-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="w-full gap-2 bg-primary hover:bg-primary/90"
+              size="lg"
+            >
+              <Upload className="h-4 w-4" />
+              {isUploading ? 'Processando...' : 'Enviar Planilha Preenchida'}
+            </Button>
+
+            {uploadInfo && (
+              <Button
+                onClick={handleClearData}
+                variant="ghost"
+                className="w-full gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                size="sm"
+              >
+                <Trash2 className="h-4 w-4" />
+                Remover dados e usar exemplo
+              </Button>
+            )}
           </div>
         </DialogContent>
       </Dialog>
