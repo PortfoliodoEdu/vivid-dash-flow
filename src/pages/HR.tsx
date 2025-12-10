@@ -74,15 +74,22 @@ export default function HR() {
   const turnoverMedio = (filteredData.reduce((acc, curr) => acc + curr.turnover, 0) / filteredData.length).toFixed(1);
 
   return (
-    <div className="p-8 space-y-8 animate-fade-in">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-4xl font-bold text-foreground mb-2">Recursos Humanos</h1>
-          <p className="text-muted-foreground">Gestão de pessoas, custos e performance da equipe por departamento</p>
+    <div className="p-8 space-y-10 animate-fade-in">
+      {/* Header with better spacing and hierarchy */}
+      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold tracking-tight" style={{ color: 'hsl(var(--foreground))' }}>
+            Recursos Humanos
+          </h1>
+          <p className="text-sm text-muted-foreground/70 max-w-md">
+            Gestão de pessoas, custos e performance da equipe por departamento
+          </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <Select value={selectedDepartamento} onValueChange={setSelectedDepartamento}>
-            <SelectTrigger className="w-[220px]">
+            <SelectTrigger 
+              className="w-[200px] h-10 text-sm border-border/50 bg-background/50"
+            >
               <SelectValue placeholder="Filtrar por departamento" />
             </SelectTrigger>
             <SelectContent>
@@ -97,48 +104,108 @@ export default function HR() {
         </div>
       </div>
 
-      {/* KPIs de RH */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="p-5 gradient-card border-border shadow-soft">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-muted-foreground">Total de Colaboradores</h3>
-            <Users className="h-5 w-5 text-primary" />
+      {/* KPIs de RH - Redesigned */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <Card 
+          className="relative overflow-hidden p-5 border shadow-sm hover:shadow-md transition-all duration-300"
+          style={{ 
+            background: 'linear-gradient(135deg, rgba(87, 95, 255, 0.03) 0%, transparent 100%)',
+            borderColor: 'hsl(var(--border))',
+          }}
+        >
+          <div className="absolute -right-4 -bottom-4 opacity-[0.04]">
+            <Users className="h-32 w-32 text-[#575FFF]" strokeWidth={1} />
           </div>
-          <p className="text-3xl font-bold text-foreground">{totalColaboradores}</p>
-          <p className="text-xs text-muted-foreground mt-2">
-            {selectedDepartamento === "all" ? "Headcount total" : `Departamento: ${filteredData[0]?.departamento}`}
-          </p>
+          <div className="relative z-10">
+            <div className="flex items-start justify-between mb-3">
+              <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground/80">
+                Total de Colaboradores
+              </h3>
+              <div className="p-2 rounded-lg" style={{ background: 'rgba(87, 95, 255, 0.08)' }}>
+                <Users className="h-4 w-4 text-[#575FFF]" strokeWidth={2} />
+              </div>
+            </div>
+            <p className="text-4xl font-bold tracking-tight text-foreground">{totalColaboradores}</p>
+            <p className="text-xs text-muted-foreground/60 mt-2">
+              {selectedDepartamento === "all" ? "Headcount total" : `Dept: ${filteredData[0]?.departamento}`}
+            </p>
+          </div>
         </Card>
 
-        <Card className="p-5 gradient-card border-border shadow-soft">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-muted-foreground">Custo RH vs Faturamento</h3>
-            <DollarSign className="h-5 w-5 text-primary" />
+        <Card 
+          className="relative overflow-hidden p-5 border shadow-sm hover:shadow-md transition-all duration-300"
+          style={{ 
+            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.03) 0%, transparent 100%)',
+            borderColor: 'hsl(var(--border))',
+          }}
+        >
+          <div className="absolute -right-4 -bottom-4 opacity-[0.04]">
+            <DollarSign className="h-32 w-32 text-blue-500" strokeWidth={1} />
           </div>
-          <p className="text-3xl font-bold text-foreground">{percentualFolha}%</p>
-          <p className="text-xs text-muted-foreground mt-2">
-            R$ {(folhaTotal / 1000).toFixed(0)}K / R$ {(receitaAtual / 1000).toFixed(0)}K
-          </p>
+          <div className="relative z-10">
+            <div className="flex items-start justify-between mb-3">
+              <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground/80">
+                Custo RH vs Faturamento
+              </h3>
+              <div className="p-2 rounded-lg" style={{ background: 'rgba(59, 130, 246, 0.08)' }}>
+                <DollarSign className="h-4 w-4 text-blue-500" strokeWidth={2} />
+              </div>
+            </div>
+            <p className="text-4xl font-bold tracking-tight text-foreground">{percentualFolha}%</p>
+            <p className="text-xs text-muted-foreground/60 mt-2">
+              R$ {(folhaTotal / 1000).toFixed(0)}K / R$ {(receitaAtual / 1000).toFixed(0)}K
+            </p>
+          </div>
         </Card>
 
-        <Card className="p-5 gradient-card border-border shadow-soft">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-muted-foreground">Custo por Colaborador</h3>
-            <TrendingUp className="h-5 w-5 text-primary" />
+        <Card 
+          className="relative overflow-hidden p-5 border shadow-sm hover:shadow-md transition-all duration-300"
+          style={{ 
+            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.03) 0%, transparent 100%)',
+            borderColor: 'hsl(var(--border))',
+          }}
+        >
+          <div className="absolute -right-4 -bottom-4 opacity-[0.04]">
+            <TrendingUp className="h-32 w-32 text-amber-500" strokeWidth={1} />
           </div>
-          <p className="text-3xl font-bold text-foreground">
-            R$ {(custoMedioColab / 1000).toFixed(1)}K
-          </p>
-          <p className="text-xs text-muted-foreground mt-2">Média mensal</p>
+          <div className="relative z-10">
+            <div className="flex items-start justify-between mb-3">
+              <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground/80">
+                Custo por Colaborador
+              </h3>
+              <div className="p-2 rounded-lg" style={{ background: 'rgba(245, 158, 11, 0.08)' }}>
+                <TrendingUp className="h-4 w-4 text-amber-500" strokeWidth={2} />
+              </div>
+            </div>
+            <p className="text-4xl font-bold tracking-tight text-foreground">
+              R$ {(custoMedioColab / 1000).toFixed(1)}K
+            </p>
+            <p className="text-xs text-muted-foreground/60 mt-2">Média mensal</p>
+          </div>
         </Card>
 
-        <Card className="p-5 gradient-card border-border shadow-soft">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-muted-foreground">Taxa de Turnover</h3>
-            <UserX className="h-5 w-5 text-success" />
+        <Card 
+          className="relative overflow-hidden p-5 border shadow-sm hover:shadow-md transition-all duration-300"
+          style={{ 
+            background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.03) 0%, transparent 100%)',
+            borderColor: 'hsl(var(--border))',
+          }}
+        >
+          <div className="absolute -right-4 -bottom-4 opacity-[0.04]">
+            <UserX className="h-32 w-32 text-emerald-500" strokeWidth={1} />
           </div>
-          <p className="text-3xl font-bold text-success">{turnoverMedio}%</p>
-          <p className="text-xs text-muted-foreground mt-2">Média do período</p>
+          <div className="relative z-10">
+            <div className="flex items-start justify-between mb-3">
+              <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground/80">
+                Taxa de Turnover
+              </h3>
+              <div className="p-2 rounded-lg" style={{ background: 'rgba(34, 197, 94, 0.08)' }}>
+                <UserX className="h-4 w-4 text-emerald-500" strokeWidth={2} />
+              </div>
+            </div>
+            <p className="text-4xl font-bold tracking-tight text-emerald-500">{turnoverMedio}%</p>
+            <p className="text-xs text-muted-foreground/60 mt-2">Média do período</p>
+          </div>
         </Card>
       </div>
 
@@ -146,17 +213,17 @@ export default function HR() {
       <div className="grid grid-cols-1 gap-6">
         <ExpandableChart 
           title="Distribuição de Colaboradores e Custos por Departamento"
-          description="Headcount e custo total de pessoal por departamento. Mostra onde estão concentrados os recursos humanos e seus respectivos custos de folha de pagamento."
+          description="Headcount e custo total de pessoal por departamento"
         >
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={filteredData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis type="number" stroke="hsl(var(--muted-foreground))" />
-              <YAxis dataKey="departamento" type="category" stroke="hsl(var(--muted-foreground))" width={120} />
+            <BarChart data={filteredData} layout="vertical" margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
+              <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis dataKey="departamento" type="category" stroke="hsl(var(--muted-foreground))" width={100} fontSize={12} tickLine={false} axisLine={false} />
               <Tooltip content={<CustomTooltip />} />
-              <Legend />
-              <Bar dataKey="colaboradores" fill="hsl(217 91% 60%)" name="Colaboradores" cursor="pointer" />
-              <Bar dataKey="custo" fill="hsl(142 76% 36%)" name="Custo (R$)" cursor="pointer" />
+              <Legend wrapperStyle={{ paddingTop: 20, fontSize: 12 }} />
+              <Bar dataKey="colaboradores" fill="#575FFF" name="Colaboradores" radius={[0, 4, 4, 0]} cursor="pointer" />
+              <Bar dataKey="custo" fill="#22c55e" name="Custo (R$)" radius={[0, 4, 4, 0]} cursor="pointer" />
             </BarChart>
           </ResponsiveContainer>
         </ExpandableChart>
@@ -164,29 +231,31 @@ export default function HR() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ExpandableChart 
             title="Custo RH vs Receita por Colaborador"
-            description="Compara a receita gerada por colaborador com o custo médio. A diferença entre as linhas representa a produtividade líquida de cada colaborador para a empresa."
+            description="Produtividade líquida por colaborador"
           >
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={produtividadeData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-                <YAxis stroke="hsl(var(--muted-foreground))" />
+              <LineChart data={produtividadeData} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
+                <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
                 <Tooltip content={<CustomTooltip valuePrefix="R$ " />} />
-                <Legend />
+                <Legend wrapperStyle={{ paddingTop: 20, fontSize: 12 }} />
                 <Line
                   type="monotone"
                   dataKey="receitaColab"
-                  stroke="hsl(142 76% 36%)"
-                  strokeWidth={3}
+                  stroke="#22c55e"
+                  strokeWidth={2.5}
                   name="Receita/Colab"
+                  dot={{ fill: '#22c55e', strokeWidth: 0, r: 4 }}
                   cursor="pointer"
                 />
                 <Line
                   type="monotone"
                   dataKey="custoColab"
-                  stroke="hsl(0 84% 60%)"
-                  strokeWidth={3}
+                  stroke="#ef4444"
+                  strokeWidth={2.5}
                   name="Custo RH/Colab"
+                  dot={{ fill: '#ef4444', strokeWidth: 0, r: 4 }}
                   cursor="pointer"
                 />
               </LineChart>
@@ -195,17 +264,17 @@ export default function HR() {
 
           <ExpandableChart 
             title="Movimentação de Pessoal (Turnover)"
-            description="Contratações (admissões) vs desligamentos mensais. A taxa de turnover indica a rotatividade da equipe."
+            description="Contratações vs desligamentos mensais"
           >
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={turnoverData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-                <YAxis stroke="hsl(var(--muted-foreground))" />
+              <BarChart data={turnoverData} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
+                <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
                 <Tooltip content={<CustomTooltip />} />
-                <Legend />
-                <Bar dataKey="admissoes" fill="hsl(142 76% 36%)" name="Admissões" cursor="pointer" />
-                <Bar dataKey="desligamentos" fill="hsl(0 84% 60%)" name="Desligamentos" cursor="pointer" />
+                <Legend wrapperStyle={{ paddingTop: 20, fontSize: 12 }} />
+                <Bar dataKey="admissoes" fill="#22c55e" name="Admissões" radius={[4, 4, 0, 0]} cursor="pointer" />
+                <Bar dataKey="desligamentos" fill="#ef4444" name="Desligamentos" radius={[4, 4, 0, 0]} cursor="pointer" />
               </BarChart>
             </ResponsiveContainer>
           </ExpandableChart>
