@@ -1,97 +1,186 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth, UserRole, roleNames } from "@/contexts/AuthContext";
+import { useAuth, UserRole } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import logoGrupoFN from "@/assets/logo-grupofn.png";
-import { 
-  Shield, 
-  BarChart3, 
-  Megaphone, 
-  DollarSign, 
-  Users, 
-  Wrench 
-} from "lucide-react";
+import { Lock, User, LogIn } from "lucide-react";
+import { toast } from "sonner";
 
-const roleIcons: Record<UserRole, React.ReactNode> = {
-  master: <Shield className="h-8 w-8" />,
-  comercial: <BarChart3 className="h-8 w-8" />,
-  marketing: <Megaphone className="h-8 w-8" />,
-  financeiro: <DollarSign className="h-8 w-8" />,
-  rh: <Users className="h-8 w-8" />,
-  suporte: <Wrench className="h-8 w-8" />,
+// Credenciais simuladas por departamento
+const credentials: Record<string, { password: string; role: UserRole }> = {
+  master: { password: "master123", role: "master" },
+  comercial: { password: "comercial123", role: "comercial" },
+  marketing: { password: "marketing123", role: "marketing" },
+  financeiro: { password: "financeiro123", role: "financeiro" },
+  rh: { password: "rh123", role: "rh" },
+  suporte: { password: "suporte123", role: "suporte" },
 };
 
-const roleDescriptions: Record<UserRole, string> = {
-  master: "Acesso completo a todas as telas e funcionalidades do sistema, incluindo visualização de métricas de todos os departamentos e configurações avançadas.",
-  comercial: "Acesso às telas de Clientes e Retenção, Comercial e Vendas, Margem por Serviço e Marketing para acompanhamento de performance comercial.",
-  marketing: "Acesso às telas de Clientes e Retenção, Comercial e Vendas, Margem por Serviço e Marketing para análise de campanhas e ROI.",
-  financeiro: "Acesso a todas as telas exceto Recursos Humanos, permitindo análise financeira completa, DRE, fluxo de caixa e métricas de negócio.",
-  rh: "Acesso exclusivo à tela de Recursos Humanos para gestão de pessoas, custos de pessoal, turnover e indicadores de RH.",
-  suporte: "Acesso completo a todas as telas com permissão para inserir dados manuais por área, ideal para gestores de cada departamento.",
+const departmentLabels: Record<string, string> = {
+  master: "Master",
+  comercial: "Comercial",
+  marketing: "Marketing",
+  financeiro: "Financeiro",
+  rh: "Recursos Humanos",
+  suporte: "Suporte",
 };
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [department, setDepartment] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (role: UserRole) => {
-    login(role);
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
     
-    // Redirect based on role
-    switch (role) {
-      case "rh":
-        navigate("/hr");
-        break;
-      case "comercial":
-      case "marketing":
-        navigate("/clients");
-        break;
-      default:
-        navigate("/");
+    if (!department) {
+      toast.error("Selecione um departamento");
+      return;
     }
+    
+    if (!password) {
+      toast.error("Digite a senha");
+      return;
+    }
+
+    setIsLoading(true);
+
+    // Simular delay de autenticação
+    setTimeout(() => {
+      const cred = credentials[department];
+      
+      if (cred && cred.password === password) {
+        login(cred.role);
+        toast.success(`Bem-vindo ao Dashboard ${departmentLabels[department]}!`);
+        
+        // Redirecionar baseado no role
+        switch (cred.role) {
+          case "rh":
+            navigate("/hr");
+            break;
+          case "comercial":
+          case "marketing":
+            navigate("/clients");
+            break;
+          default:
+            navigate("/");
+        }
+      } else {
+        toast.error("Credenciais inválidas");
+      }
+      
+      setIsLoading(false);
+    }, 800);
   };
 
-  const roles: UserRole[] = ["master", "comercial", "marketing", "financeiro", "rh", "suporte"];
-
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-8">
-      <div className="w-full max-w-5xl space-y-8">
-        <div className="flex flex-col items-center space-y-4">
-          <img src={logoGrupoFN} alt="Grupo FN" className="h-24 w-auto" />
-          <h1 className="text-3xl font-bold text-foreground">Dashboard Executivo</h1>
-          <p className="text-muted-foreground text-center max-w-lg">
-            Selecione seu perfil de acesso para visualizar os dashboards e métricas disponíveis para seu departamento.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {roles.map((role) => (
-            <Card
-              key={role}
-              className="p-6 gradient-card border-border shadow-soft hover:shadow-hover transition-all duration-300 cursor-pointer group"
-              onClick={() => handleLogin(role)}
-            >
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                    {roleIcons[role]}
-                  </div>
-                  <h3 className="text-lg font-semibold text-foreground">{roleNames[role]}</h3>
-                </div>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {roleDescriptions[role]}
-                </p>
-                <Button 
-                  variant="outline" 
-                  className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-                >
-                  Acessar
-                </Button>
-              </div>
-            </Card>
-          ))}
-        </div>
+    <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden">
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
+      
+      {/* Animated background shapes */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "2s" }} />
       </div>
+
+      {/* Glassmorphic login card */}
+      <Card className="relative z-10 w-full max-w-md p-8 bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
+        <div className="space-y-6">
+          {/* Logo and header */}
+          <div className="flex flex-col items-center space-y-4">
+            <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-sm">
+              <img src={logoGrupoFN} alt="Grupo FN" className="h-20 w-auto" />
+            </div>
+            <div className="text-center">
+              <h1 className="text-2xl font-bold text-white">Dashboard Executivo</h1>
+              <p className="text-white/60 text-sm mt-1">
+                Acesse o painel do seu departamento
+              </p>
+            </div>
+          </div>
+
+          {/* Login form */}
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="department" className="text-white/80 text-sm font-medium">
+                Departamento
+              </Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+                <Select value={department} onValueChange={setDepartment}>
+                  <SelectTrigger 
+                    id="department"
+                    className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-primary/50 focus:ring-primary/20 h-12"
+                  >
+                    <SelectValue placeholder="Selecione seu departamento" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-white/20">
+                    {Object.entries(departmentLabels).map(([key, label]) => (
+                      <SelectItem 
+                        key={key} 
+                        value={key}
+                        className="text-white hover:bg-white/10 focus:bg-white/10 focus:text-white"
+                      >
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-white/80 text-sm font-medium">
+                Senha
+              </Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Digite sua senha"
+                  className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-primary/50 focus:ring-primary/20 h-12"
+                />
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full h-12 bg-gradient-to-r from-primary to-emerald-500 hover:from-primary/90 hover:to-emerald-500/90 text-white font-semibold shadow-lg shadow-primary/25 transition-all duration-300"
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Entrando...
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <LogIn className="h-4 w-4" />
+                  Entrar
+                </div>
+              )}
+            </Button>
+          </form>
+
+          {/* Footer */}
+          <div className="pt-4 border-t border-white/10">
+            <p className="text-center text-white/40 text-xs">
+              © {new Date().getFullYear()} Grupo FN. Todos os direitos reservados.
+            </p>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }
