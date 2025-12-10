@@ -11,7 +11,8 @@ import {
   Database,
   Table,
   ExternalLink,
-  Loader2
+  Loader2,
+  Link2
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Dialog, DialogContent } from './ui/dialog';
@@ -20,8 +21,10 @@ import {
   generateSmartTemplate, 
   analyzeUploadedFile, 
   processUploadedData,
-  type FileAnalysis 
+  type FileAnalysis,
+  type SheetMappingAnalysis
 } from '@/lib/smartTemplates';
+import SmartColumnMapper, { type ColumnMappingItem, type TargetColumn } from './SmartColumnMapper';
 import { toast } from 'sonner';
 
 interface SmartUploadModalProps {
@@ -32,7 +35,7 @@ interface SmartUploadModalProps {
   googleSheetsUrl?: string;
 }
 
-type Step = 'template' | 'upload' | 'preview';
+type Step = 'template' | 'upload' | 'mapping' | 'preview';
 
 const SmartUploadModal: React.FC<SmartUploadModalProps> = ({ 
   isOpen, 
@@ -45,6 +48,8 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [fileAnalysis, setFileAnalysis] = useState<FileAnalysis | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [currentMappingSheetIndex, setCurrentMappingSheetIndex] = useState(0);
+  const [confirmedMappings, setConfirmedMappings] = useState<Record<string, { sourceColumn: string; targetKey: string }[]>>({});
 
   const template = smartTemplates[pageId];
 
@@ -76,12 +81,19 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
     try {
       const analysis = await analyzeUploadedFile(file, pageId);
       setFileAnalysis(analysis);
-      setStep('preview');
       
-      if (analysis.warnings.length > 0) {
-        toast.warning("Arquivo lido com avisos. Verifique os detalhes.");
+      // Check if we need column mapping
+      if (analysis.needsColumnMapping) {
+        setCurrentMappingSheetIndex(0);
+        setStep('mapping');
+        toast.info("Algumas colunas precisam ser mapeadas.");
       } else {
-        toast.success("Arquivo analisado com sucesso!");
+        setStep('preview');
+        if (analysis.warnings.length > 0) {
+          toast.warning("Arquivo lido com avisos. Verifique os detalhes.");
+        } else {
+          toast.success("Arquivo analisado com sucesso!");
+        }
       }
     } catch (error: any) {
       toast.error(error.message || "Erro ao processar arquivo.");
@@ -102,11 +114,64 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
     disabled: isAnalyzing
   });
 
+  const getSheetsNeedingMapping = () => {
+    if (!fileAnalysis) return [];
+    return fileAnalysis.sheets.filter(s => s.mappingAnalysis?.needsReview);
+  };
+
+  const handleMappingConfirm = (mappings: ColumnMappingItem[]) => {
+    const sheetsNeedingMapping = getSheetsNeedingMapping();
+    const currentSheet = sheetsNeedingMapping[currentMappingSheetIndex];
+    
+    if (!currentSheet) return;
+
+    // Save confirmed mappings
+    const validMappings = mappings
+      .filter(m => m.targetKey !== null)
+      .map(m => ({ sourceColumn: m.sourceColumn, targetKey: m.targetKey! }));
+    
+    setConfirmedMappings(prev => ({
+      ...prev,
+      [currentSheet.name]: validMappings
+    }));
+
+    // Move to next sheet or preview
+    if (currentMappingSheetIndex < sheetsNeedingMapping.length - 1) {
+      setCurrentMappingSheetIndex(prev => prev + 1);
+    } else {
+      setStep('preview');
+      toast.success("Mapeamento concluído!");
+    }
+  };
+
+  const handleMappingCancel = () => {
+    setStep('upload');
+    setFileAnalysis(null);
+    setUploadedFile(null);
+    setConfirmedMappings({});
+    setCurrentMappingSheetIndex(0);
+  };
+
   const handleConfirmImport = async () => {
     if (!uploadedFile) return;
 
     try {
-      const data = await processUploadedData(uploadedFile);
+      // Use confirmed mappings if any, otherwise auto-detected mappings
+      const allMappings: Record<string, { sourceColumn: string; targetKey: string }[]> = { ...confirmedMappings };
+      
+      // Add auto-detected mappings for sheets that didn't need review
+      fileAnalysis?.sheets.forEach(sheet => {
+        if (!allMappings[sheet.name] && sheet.mappingAnalysis) {
+          const autoMappings = sheet.mappingAnalysis.suggestedMappings
+            .filter(m => m.targetKey !== null)
+            .map(m => ({ sourceColumn: m.sourceColumn, targetKey: m.targetKey! }));
+          if (autoMappings.length > 0) {
+            allMappings[sheet.name] = autoMappings;
+          }
+        }
+      });
+
+      const data = await processUploadedData(uploadedFile, Object.keys(allMappings).length > 0 ? allMappings : undefined);
       onDataLoaded(data, uploadedFile.name);
       toast.success(`${fileAnalysis?.totalRows || 0} registros importados com sucesso!`);
       handleClose();
@@ -121,14 +186,31 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
       setStep('template');
       setFileAnalysis(null);
       setUploadedFile(null);
+      setConfirmedMappings({});
+      setCurrentMappingSheetIndex(0);
     }, 300);
   };
 
   const handleBack = () => {
     if (step === 'preview') {
-      setStep('upload');
-      setFileAnalysis(null);
-      setUploadedFile(null);
+      const sheetsNeedingMapping = getSheetsNeedingMapping();
+      if (sheetsNeedingMapping.length > 0) {
+        setCurrentMappingSheetIndex(sheetsNeedingMapping.length - 1);
+        setStep('mapping');
+      } else {
+        setStep('upload');
+        setFileAnalysis(null);
+        setUploadedFile(null);
+      }
+    } else if (step === 'mapping') {
+      if (currentMappingSheetIndex > 0) {
+        setCurrentMappingSheetIndex(prev => prev - 1);
+      } else {
+        setStep('upload');
+        setFileAnalysis(null);
+        setUploadedFile(null);
+        setConfirmedMappings({});
+      }
     } else if (step === 'upload') {
       setStep('template');
     }
@@ -136,20 +218,46 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
 
   if (!template) return null;
 
+  const sheetsNeedingMapping = getSheetsNeedingMapping();
+  const currentMappingSheet = sheetsNeedingMapping[currentMappingSheetIndex];
+
+  // Determine progress step
+  const getProgressSteps = () => {
+    const base = ['template', 'upload'];
+    if (fileAnalysis?.needsColumnMapping) {
+      base.push('mapping');
+    }
+    base.push('preview');
+    return base;
+  };
+  const progressSteps = getProgressSteps();
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden bg-card border-border/50 rounded-xl">
+      <DialogContent className={`p-0 overflow-hidden bg-card border-border/50 rounded-xl ${step === 'mapping' ? 'sm:max-w-[900px]' : 'sm:max-w-[700px]'}`}>
         
         {/* Header Gradient */}
         <div className="bg-gradient-to-r from-primary to-primary/80 p-6 text-primary-foreground">
           <div className="flex justify-between items-start">
             <div>
               <h2 className="text-2xl font-bold flex items-center gap-3">
-                <Database className="w-7 h-7" />
-                Central de Importação
+                {step === 'mapping' ? (
+                  <>
+                    <Link2 className="w-7 h-7" />
+                    Mapeamento de Colunas
+                  </>
+                ) : (
+                  <>
+                    <Database className="w-7 h-7" />
+                    Central de Importação
+                  </>
+                )}
               </h2>
               <p className="text-primary-foreground/80 mt-1">
-                {template.name} — {template.description}
+                {step === 'mapping' 
+                  ? `Aba: ${currentMappingSheet?.name} (${currentMappingSheetIndex + 1}/${sheetsNeedingMapping.length})`
+                  : `${template.name} — ${template.description}`
+                }
               </p>
             </div>
             <button 
@@ -162,19 +270,19 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
           
           {/* Progress Steps */}
           <div className="flex items-center gap-2 mt-6">
-            {['template', 'upload', 'preview'].map((s, i) => (
+            {progressSteps.map((s, i) => (
               <React.Fragment key={s}>
                 <div className={`
                   flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-all
-                  ${step === s || ['template', 'upload', 'preview'].indexOf(step) > i
+                  ${progressSteps.indexOf(step) >= i
                     ? 'bg-primary-foreground text-primary' 
                     : 'bg-primary-foreground/20 text-primary-foreground/60'}
                 `}>
                   {i + 1}
                 </div>
-                {i < 2 && (
+                {i < progressSteps.length - 1 && (
                   <div className={`flex-1 h-0.5 ${
-                    ['template', 'upload', 'preview'].indexOf(step) > i 
+                    progressSteps.indexOf(step) > i 
                       ? 'bg-primary-foreground' 
                       : 'bg-primary-foreground/20'
                   }`} />
@@ -198,7 +306,7 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
               </div>
 
               {/* Sheets Preview */}
-              <div className="space-y-4">
+              <div className="space-y-4 max-h-[300px] overflow-y-auto">
                 {template.sheets.map((sheet, idx) => (
                   <div 
                     key={idx} 
@@ -319,7 +427,27 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
             </div>
           )}
 
-          {/* Step 3: Preview */}
+          {/* Step 3: Column Mapping */}
+          {step === 'mapping' && currentMappingSheet?.mappingAnalysis && (
+            <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+              <SmartColumnMapper
+                sheetName={currentMappingSheet.name}
+                sourceColumns={currentMappingSheet.mappingAnalysis.sourceColumns}
+                targetColumns={currentMappingSheet.mappingAnalysis.targetColumns.map(c => ({
+                  key: c.key,
+                  label: c.label,
+                  required: c.required,
+                  description: c.description,
+                  type: c.type
+                }))}
+                suggestedMappings={currentMappingSheet.mappingAnalysis.suggestedMappings}
+                onConfirm={handleMappingConfirm}
+                onCancel={handleMappingCancel}
+              />
+            </div>
+          )}
+
+          {/* Step 4: Preview */}
           {step === 'preview' && fileAnalysis && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
               {/* Success Header */}
@@ -327,7 +455,7 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
                 <div className="mx-auto bg-green-500/10 w-16 h-16 rounded-full flex items-center justify-center mb-3">
                   <CheckCircle2 className="w-8 h-8 text-green-500" />
                 </div>
-                <h3 className="text-xl font-bold text-foreground">Arquivo Analisado!</h3>
+                <h3 className="text-xl font-bold text-foreground">Pronto para Importar!</h3>
                 <p className="text-muted-foreground">{fileAnalysis.fileName}</p>
               </div>
 
