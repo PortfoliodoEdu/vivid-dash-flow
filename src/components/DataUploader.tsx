@@ -56,8 +56,10 @@ const DataUploader: React.FC<DataUploaderProps> = ({ pageId, onDataUpdated }) =>
         return;
       }
 
-      await setData(pageId, data, file.name);
-      toast.success(`Dados carregados: ${data.length} registros`);
+      // Store the entire multi-sheet data object
+      await setData(pageId, data as any, file.name);
+      const totalRecords = Object.values(data).reduce((sum, arr) => sum + arr.length, 0);
+      toast.success(`Dados carregados: ${totalRecords} registros em ${Object.keys(data).length} planilha(s)`);
       setIsOpen(false);
       onDataUpdated?.();
     } catch (error) {
@@ -162,18 +164,14 @@ const DataUploader: React.FC<DataUploaderProps> = ({ pageId, onDataUpdated }) =>
             <div className="flex items-start gap-2">
               <Info className="h-4 w-4 text-primary mt-0.5" />
               <div className="text-sm text-muted-foreground">
-                <p className="font-medium text-foreground mb-1">Colunas esperadas:</p>
+                <p className="font-medium text-foreground mb-1">Planilhas esperadas:</p>
                 <div className="flex flex-wrap gap-1">
-                  {template.columns.map(col => (
+                  {template.sheets.map(sheet => (
                     <span 
-                      key={col.key}
-                      className={`px-2 py-0.5 rounded text-xs ${
-                        col.required 
-                          ? 'bg-primary/20 text-primary' 
-                          : 'bg-muted text-muted-foreground'
-                      }`}
+                      key={sheet.sheetName}
+                      className="px-2 py-0.5 rounded text-xs bg-primary/20 text-primary"
                     >
-                      {col.label}{col.required && '*'}
+                      {sheet.sheetName}
                     </span>
                   ))}
                 </div>
