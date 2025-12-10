@@ -42,23 +42,24 @@ export function DashboardSidebar() {
   return (
     <Sidebar 
       collapsible="icon" 
-      className="border-r border-sidebar-border"
+      className="border-r"
       style={{
-        background: 'linear-gradient(180deg, #2C313D 0%, #252931 100%)',
+        background: 'linear-gradient(180deg, #1a1d24 0%, #13151a 100%)',
+        borderColor: 'rgba(255,255,255,0.04)',
       }}
     >
       {/* Logo header */}
       <div 
-        className="flex items-center justify-between p-5 border-b"
+        className="flex items-center justify-between p-5"
         style={{ 
-          borderColor: 'rgba(255,255,255,0.06)',
-          background: '#041AAA',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          background: 'linear-gradient(135deg, #041AAA 0%, #011AD0 100%)',
         }}
       >
         {open && (
-          <img src={logoGrupoFN} alt="Grupo FN" className="h-24 w-auto brightness-0 invert" />
+          <img src={logoGrupoFN} alt="Grupo FN" className="h-20 w-auto brightness-0 invert" />
         )}
-        <SidebarTrigger className="text-white hover:bg-white/10">
+        <SidebarTrigger className="text-white/80 hover:text-white hover:bg-white/10 transition-colors">
           <Menu className="h-5 w-5" />
         </SidebarTrigger>
       </div>
@@ -66,22 +67,27 @@ export function DashboardSidebar() {
       {/* User info */}
       {open && user && (
         <div 
-          className="p-4 border-b"
+          className="px-5 py-4"
           style={{ 
-            borderColor: 'rgba(255,255,255,0.06)',
-            background: 'rgba(87,95,255,0.1)',
+            borderBottom: '1px solid rgba(255,255,255,0.04)',
+            background: 'rgba(65,65,233,0.08)',
           }}
         >
-          <p className="text-xs" style={{ color: '#7689FF' }}>Logado como:</p>
-          <p className="text-sm font-medium text-white">{user.name}</p>
+          <p className="text-[11px] uppercase tracking-wider" style={{ color: 'rgba(118,137,255,0.7)' }}>Logado como</p>
+          <p className="text-sm font-semibold text-white mt-1">{user.name}</p>
         </div>
       )}
 
-      <SidebarContent>
+      <SidebarContent className="px-3 py-4">
         <SidebarGroup>
-          <SidebarGroupLabel style={{ color: '#7689FF' }}>Navegação</SidebarGroupLabel>
+          <SidebarGroupLabel 
+            className="text-[11px] uppercase tracking-wider mb-3 px-3"
+            style={{ color: 'rgba(118,137,255,0.6)' }}
+          >
+            Navegação
+          </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1">
               {filteredMenuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
@@ -89,20 +95,31 @@ export function DashboardSidebar() {
                       to={item.url}
                       end
                       className={({ isActive }) =>
-                        `transition-all duration-200 ${
+                        `relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
                           isActive
                             ? "text-white font-medium"
-                            : "text-white/70 hover:text-white hover:bg-white/5"
+                            : "text-white/60 hover:text-white/90 hover:bg-white/5"
                         }`
                       }
                       style={({ isActive }) => 
                         isActive 
-                          ? { background: 'linear-gradient(90deg, #4141E9, #575FFF)' }
+                          ? { background: 'linear-gradient(90deg, rgba(65,65,233,0.3) 0%, rgba(87,95,255,0.15) 100%)' }
                           : {}
                       }
                     >
-                      <item.icon className="h-4 w-4" />
-                      {open && <span>{item.title}</span>}
+                      {({ isActive }) => (
+                        <>
+                          {/* Active indicator bar */}
+                          {isActive && (
+                            <div 
+                              className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r-full"
+                              style={{ background: 'linear-gradient(180deg, #575FFF 0%, #4141E9 100%)' }}
+                            />
+                          )}
+                          <item.icon className={`h-5 w-5 ${isActive ? 'text-[#7689FF]' : ''}`} strokeWidth={isActive ? 2.5 : 1.8} />
+                          {open && <span>{item.title}</span>}
+                        </>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -112,8 +129,13 @@ export function DashboardSidebar() {
         </SidebarGroup>
 
         {canAccess("tv") && (
-          <SidebarGroup>
-            <SidebarGroupLabel style={{ color: '#7689FF' }}>Visualização</SidebarGroupLabel>
+          <SidebarGroup className="mt-6">
+            <SidebarGroupLabel 
+              className="text-[11px] uppercase tracking-wider mb-3 px-3"
+              style={{ color: 'rgba(118,137,255,0.6)' }}
+            >
+              Visualização
+            </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -121,20 +143,30 @@ export function DashboardSidebar() {
                     <NavLink
                       to="/tv"
                       className={({ isActive }) =>
-                        `transition-all duration-200 ${
+                        `relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
                           isActive
                             ? "text-white font-medium"
-                            : "text-white/70 hover:text-white hover:bg-white/5"
+                            : "text-white/60 hover:text-white/90 hover:bg-white/5"
                         }`
                       }
                       style={({ isActive }) => 
                         isActive 
-                          ? { background: 'linear-gradient(90deg, #4141E9, #575FFF)' }
+                          ? { background: 'linear-gradient(90deg, rgba(65,65,233,0.3) 0%, rgba(87,95,255,0.15) 100%)' }
                           : {}
                       }
                     >
-                      <Tv className="h-4 w-4" />
-                      {open && <span>Modo TV</span>}
+                      {({ isActive }) => (
+                        <>
+                          {isActive && (
+                            <div 
+                              className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r-full"
+                              style={{ background: 'linear-gradient(180deg, #575FFF 0%, #4141E9 100%)' }}
+                            />
+                          )}
+                          <Tv className={`h-5 w-5 ${isActive ? 'text-[#7689FF]' : ''}`} strokeWidth={isActive ? 2.5 : 1.8} />
+                          {open && <span>Modo TV</span>}
+                        </>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -144,18 +176,17 @@ export function DashboardSidebar() {
         )}
 
         {/* Logout */}
-        <SidebarGroup className="mt-auto">
+        <SidebarGroup className="mt-auto pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Button
                     variant="ghost"
-                    className="w-full justify-start transition-all duration-200 hover:bg-red-500/20"
-                    style={{ color: '#ff6b6b' }}
+                    className="w-full justify-start gap-3 px-3 py-2.5 rounded-lg text-red-400/80 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
                     onClick={handleLogout}
                   >
-                    <LogOut className="h-4 w-4" />
+                    <LogOut className="h-5 w-5" strokeWidth={1.8} />
                     {open && <span>Sair</span>}
                   </Button>
                 </SidebarMenuButton>
