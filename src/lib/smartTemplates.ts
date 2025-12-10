@@ -315,6 +315,8 @@ export const analyzeUploadedFile = async (file: File, templateId: string): Promi
   const warnings: string[] = [];
   let needsColumnMapping = false;
 
+  console.log('[analyzeUploadedFile] Starting analysis for template:', templateId);
+
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     
@@ -322,22 +324,43 @@ export const analyzeUploadedFile = async (file: File, templateId: string): Promi
       try {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
+        
+        console.log('[analyzeUploadedFile] Excel sheets found:', workbook.SheetNames);
+        console.log('[analyzeUploadedFile] Template sheets expected:', template?.sheets.map(s => s.name));
 
-        const sheets = workbook.SheetNames.map(sheetName => {
+        const sheets = workbook.SheetNames.map((sheetName, sheetIndex) => {
           const worksheet = workbook.Sheets[sheetName];
           const jsonData = XLSX.utils.sheet_to_json(worksheet) as Record<string, any>[];
           const columns = jsonData.length > 0 ? Object.keys(jsonData[0]) : [];
 
-          // Find matching template sheet
-          const expectedSheet = template?.sheets.find(s => 
+          console.log(`[analyzeUploadedFile] Sheet "${sheetName}": ${columns.length} columns, ${jsonData.length} rows`);
+          console.log(`[analyzeUploadedFile] Columns found:`, columns);
+
+          // Find matching template sheet - try multiple strategies
+          let expectedSheet = template?.sheets.find(s => 
             s.name.toLowerCase() === sheetName.toLowerCase() ||
             s.name.replace(/_/g, ' ').toLowerCase() === sheetName.toLowerCase() ||
             s.name.replace(/_/g, '').toLowerCase() === sheetName.replace(/[\s_-]/g, '').toLowerCase()
           );
 
+          // Fallback: if no match and this is the first sheet, use the first template sheet
+          // (common case: user has "Plan1" or "Sheet1" instead of expected name)
+          if (!expectedSheet && sheetIndex === 0 && template?.sheets.length > 0) {
+            console.log('[analyzeUploadedFile] No sheet name match, using first template sheet as fallback');
+            expectedSheet = template.sheets[0];
+          }
+
+          // Also try to match by sheet index if names don't match
+          if (!expectedSheet && template?.sheets[sheetIndex]) {
+            console.log('[analyzeUploadedFile] Using template sheet by index:', sheetIndex);
+            expectedSheet = template.sheets[sheetIndex];
+          }
+
           let mappingAnalysis: SheetMappingAnalysis | null = null;
 
           if (expectedSheet && columns.length > 0) {
+            console.log(`[analyzeUploadedFile] Matching with template sheet: "${expectedSheet.name}"`);
+            
             // Generate smart mappings
             const targetColumns = expectedSheet.columns.map(c => ({
               key: c.key,
@@ -347,10 +370,16 @@ export const analyzeUploadedFile = async (file: File, templateId: string): Promi
             
             const mappingResult = generateMappings(columns, targetColumns);
             
+            console.log('[analyzeUploadedFile] Mapping result:', {
+              matched: mappingResult.mappings.length,
+              unmapped: mappingResult.unmappedSource.length,
+              missingRequired: mappingResult.missingRequired
+            });
+
             // Build suggested mappings
             const suggestedMappings = columns.map(sourceCol => {
               const mapping = mappingResult.mappings.find(m => m.sourceColumn === sourceCol);
-              const targetCol = mapping ? expectedSheet.columns.find(c => c.key === mapping.targetKey) : null;
+              const targetCol = mapping ? expectedSheet!.columns.find(c => c.key === mapping.targetKey) : null;
               
               return {
                 sourceColumn: sourceCol,
@@ -364,23 +393,29 @@ export const analyzeUploadedFile = async (file: File, templateId: string): Promi
             // Check if any mapping needs review
             const hasLowConfidence = suggestedMappings.some(m => m.targetKey && m.confidence < 0.9);
             const hasMissing = mappingResult.missingRequired.length > 0;
-            const hasUnmapped = columns.length > suggestedMappings.filter(m => m.targetKey).length;
+            const hasUnmapped = mappingResult.unmappedSource.length > 0;
+            const notAllMapped = suggestedMappings.filter(m => m.targetKey).length < targetColumns.filter(t => t.required).length;
+
+            console.log('[analyzeUploadedFile] Review needed?', { hasLowConfidence, hasMissing, hasUnmapped, notAllMapped });
 
             mappingAnalysis = {
               sourceColumns: columns,
               targetColumns: expectedSheet.columns,
               suggestedMappings,
-              needsReview: hasLowConfidence || hasMissing || hasUnmapped,
+              needsReview: hasLowConfidence || hasMissing || hasUnmapped || notAllMapped,
               missingRequired: mappingResult.missingRequired
             };
 
             if (mappingAnalysis.needsReview) {
               needsColumnMapping = true;
+              console.log('[analyzeUploadedFile] Column mapping will be required');
             }
 
             if (mappingResult.missingRequired.length > 0) {
               warnings.push(`Aba "${sheetName}": colunas obrigatórias não reconhecidas: ${mappingResult.missingRequired.join(', ')}`);
             }
+          } else {
+            console.log(`[analyzeUploadedFile] No template match for sheet "${sheetName}"`);
           }
 
           return {
