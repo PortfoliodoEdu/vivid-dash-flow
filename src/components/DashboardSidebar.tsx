@@ -40,26 +40,46 @@ export function DashboardSidebar() {
   const filteredMenuItems = menuItems.filter(item => canAccess(item.page));
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
-      <div className="flex items-center justify-between p-5 border-b border-sidebar-border bg-background">
+    <Sidebar 
+      collapsible="icon" 
+      className="border-r border-sidebar-border"
+      style={{
+        background: 'linear-gradient(180deg, #2C313D 0%, #252931 100%)',
+      }}
+    >
+      {/* Logo header */}
+      <div 
+        className="flex items-center justify-between p-5 border-b"
+        style={{ 
+          borderColor: 'rgba(255,255,255,0.06)',
+          background: '#041AAA',
+        }}
+      >
         {open && (
-          <img src={logoGrupoFN} alt="Grupo FN" className="h-32 w-auto" />
+          <img src={logoGrupoFN} alt="Grupo FN" className="h-24 w-auto brightness-0 invert" />
         )}
-        <SidebarTrigger>
+        <SidebarTrigger className="text-white hover:bg-white/10">
           <Menu className="h-5 w-5" />
         </SidebarTrigger>
       </div>
 
+      {/* User info */}
       {open && user && (
-        <div className="p-4 border-b border-sidebar-border bg-muted/30">
-          <p className="text-xs text-muted-foreground">Logado como:</p>
-          <p className="text-sm font-medium text-foreground">{user.name}</p>
+        <div 
+          className="p-4 border-b"
+          style={{ 
+            borderColor: 'rgba(255,255,255,0.06)',
+            background: 'rgba(87,95,255,0.1)',
+          }}
+        >
+          <p className="text-xs" style={{ color: '#7689FF' }}>Logado como:</p>
+          <p className="text-sm font-medium text-white">{user.name}</p>
         </div>
       )}
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navegação</SidebarGroupLabel>
+          <SidebarGroupLabel style={{ color: '#7689FF' }}>Navegação</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {filteredMenuItems.map((item) => (
@@ -69,9 +89,16 @@ export function DashboardSidebar() {
                       to={item.url}
                       end
                       className={({ isActive }) =>
-                        isActive
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                          : "hover:bg-sidebar-accent/50"
+                        `transition-all duration-200 ${
+                          isActive
+                            ? "text-white font-medium"
+                            : "text-white/70 hover:text-white hover:bg-white/5"
+                        }`
+                      }
+                      style={({ isActive }) => 
+                        isActive 
+                          ? { background: 'linear-gradient(90deg, #4141E9, #575FFF)' }
+                          : {}
                       }
                     >
                       <item.icon className="h-4 w-4" />
@@ -86,7 +113,7 @@ export function DashboardSidebar() {
 
         {canAccess("tv") && (
           <SidebarGroup>
-            <SidebarGroupLabel>Visualização</SidebarGroupLabel>
+            <SidebarGroupLabel style={{ color: '#7689FF' }}>Visualização</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -94,9 +121,16 @@ export function DashboardSidebar() {
                     <NavLink
                       to="/tv"
                       className={({ isActive }) =>
-                        isActive
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-sidebar-accent/50"
+                        `transition-all duration-200 ${
+                          isActive
+                            ? "text-white font-medium"
+                            : "text-white/70 hover:text-white hover:bg-white/5"
+                        }`
+                      }
+                      style={({ isActive }) => 
+                        isActive 
+                          ? { background: 'linear-gradient(90deg, #4141E9, #575FFF)' }
+                          : {}
                       }
                     >
                       <Tv className="h-4 w-4" />
@@ -109,6 +143,7 @@ export function DashboardSidebar() {
           </SidebarGroup>
         )}
 
+        {/* Logout */}
         <SidebarGroup className="mt-auto">
           <SidebarGroupContent>
             <SidebarMenu>
@@ -116,7 +151,8 @@ export function DashboardSidebar() {
                 <SidebarMenuButton asChild>
                   <Button
                     variant="ghost"
-                    className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+                    className="w-full justify-start transition-all duration-200 hover:bg-red-500/20"
+                    style={{ color: '#ff6b6b' }}
                     onClick={handleLogout}
                   >
                     <LogOut className="h-4 w-4" />
