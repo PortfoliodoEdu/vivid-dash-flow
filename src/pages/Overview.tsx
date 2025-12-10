@@ -1,7 +1,8 @@
-import { DollarSign, TrendingUp, TrendingDown, Activity, Info } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Activity, Info, AlertTriangle } from "lucide-react";
 import { ExpandableChart } from "@/components/ExpandableChart";
 import { FilterBadges } from "@/components/FilterBadges";
 import { CustomTooltip } from "@/components/CustomTooltip";
+import { AccountSelector } from "@/components/AccountSelector";
 import { useFilters } from "@/contexts/FilterContext";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Legend } from "recharts";
 import { toast } from "sonner";
@@ -90,9 +91,12 @@ export default function Overview() {
 
   return (
     <div className="p-8 space-y-8 animate-fade-in">
-      <div>
-        <h1 className="text-4xl font-bold text-foreground mb-2">Visão Executiva</h1>
-        <p className="text-muted-foreground">Dashboard do CEO - Principais indicadores do Grupo FN</p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Visão Executiva</h1>
+          <p className="text-muted-foreground">Dashboard do CEO - Principais indicadores do Grupo FN</p>
+        </div>
+        <AccountSelector />
       </div>
 
       <FilterBadges />
@@ -240,6 +244,13 @@ export default function Overview() {
               <div>
                 <p className="text-sm font-medium text-foreground">LTV/CAC Excelente</p>
                 <p className="text-xs text-muted-foreground">4.37x - Muito acima do ideal (3.0x)</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-3 bg-warning/10 rounded-lg border border-warning/20">
+              <AlertTriangle className="h-5 w-5 text-warning mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-foreground">Inadimplência - Monitorar</p>
+                <p className="text-xs text-muted-foreground">3.2% (R$ 36K) - Meta: &lt; 3% - Leve atenção necessária para evitar aumento do índice</p>
               </div>
             </div>
             <div className="flex items-start gap-3 p-3 bg-primary/10 rounded-lg border border-primary/20">

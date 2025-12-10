@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { ExpandableChart } from "@/components/ExpandableChart";
 import { FilterBadges } from "@/components/FilterBadges";
 import { CustomTooltip } from "@/components/CustomTooltip";
+import { AccountSelector } from "@/components/AccountSelector";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend, PieChart, Pie, Cell } from "recharts";
-import { Users, UserPlus, UserX, TrendingUp, Award } from "lucide-react";
+import { Users, UserPlus, UserX, Award, ChevronDown, ChevronUp } from "lucide-react";
 
 const baseClientesData = [
   { month: "Jan", ativos: 1482, novos: 45, perdidos: 8, reativados: 3 },
@@ -16,18 +19,74 @@ const baseClientesData = [
 ];
 
 const clientesPorServico = [
-  { servico: "Contabilidade", clientes: 856, percentual: 55.5 },
-  { servico: "BPO Estratégico", clientes: 342, percentual: 22.2 },
-  { servico: "BPO RH", clientes: 289, percentual: 18.7 },
-  { servico: "ClickOn", clientes: 178, percentual: 11.5 },
-  { servico: "Certificado Digital", clientes: 445, percentual: 28.9 },
-  { servico: "FN EUA", clientes: 67, percentual: 4.3 },
+  { 
+    servico: "Contabilidade", 
+    clientes: 856, 
+    percentual: 55.5,
+    produtos: [
+      { nome: "Contabilidade Simples Nacional", clientes: 412 },
+      { nome: "Contabilidade Lucro Presumido", clientes: 298 },
+      { nome: "Contabilidade Lucro Real", clientes: 146 },
+    ]
+  },
+  { 
+    servico: "BPO Estratégico", 
+    clientes: 342, 
+    percentual: 22.2,
+    produtos: [
+      { nome: "BPO Financeiro Completo", clientes: 156 },
+      { nome: "BPO Controladoria", clientes: 98 },
+      { nome: "BPO Fiscal", clientes: 88 },
+    ]
+  },
+  { 
+    servico: "BPO RH", 
+    clientes: 289, 
+    percentual: 18.7,
+    produtos: [
+      { nome: "Folha de Pagamento", clientes: 189 },
+      { nome: "Gestão de Benefícios", clientes: 67 },
+      { nome: "Recrutamento", clientes: 33 },
+    ]
+  },
+  { 
+    servico: "ClickOn", 
+    clientes: 178, 
+    percentual: 11.5,
+    produtos: [
+      { nome: "ClickOn Basic", clientes: 89 },
+      { nome: "ClickOn Pro", clientes: 56 },
+      { nome: "ClickOn Enterprise", clientes: 33 },
+    ]
+  },
+  { 
+    servico: "Certificado Digital", 
+    clientes: 445, 
+    percentual: 28.9,
+    produtos: [
+      { nome: "e-CPF A1", clientes: 156 },
+      { nome: "e-CPF A3", clientes: 123 },
+      { nome: "e-CNPJ A1", clientes: 98 },
+      { nome: "e-CNPJ A3", clientes: 68 },
+    ]
+  },
+  { 
+    servico: "FN EUA", 
+    clientes: 67, 
+    percentual: 4.3,
+    produtos: [
+      { nome: "LLC Formation", clientes: 34 },
+      { nome: "Bookkeeping USA", clientes: 23 },
+      { nome: "Tax Filing", clientes: 10 },
+    ]
+  },
 ];
 
-const segmentacaoTamanho = [
-  { tamanho: "Pequeno", clientes: 892, percentual: 57.8 },
-  { tamanho: "Médio", clientes: 512, percentual: 33.2 },
-  { tamanho: "Grande", clientes: 138, percentual: 8.9 },
+const regimesTributarios = [
+  { regime: "Simples Nacional", clientes: 892, faturamentoMedio: 180000, percentual: 57.8 },
+  { regime: "Lucro Presumido", clientes: 412, faturamentoMedio: 850000, percentual: 26.7 },
+  { regime: "Lucro Real", clientes: 156, faturamentoMedio: 4500000, percentual: 10.1 },
+  { regime: "MEI", clientes: 82, faturamentoMedio: 65000, percentual: 5.3 },
 ];
 
 const multiServicos = [
@@ -48,15 +107,28 @@ const npsData = [
 const COLORS = ["hsl(217 91% 60%)", "hsl(142 76% 36%)", "hsl(38 92% 50%)"];
 
 export default function Clients() {
+  const [expandedServicos, setExpandedServicos] = useState<string[]>([]);
+
+  const toggleServico = (servico: string) => {
+    setExpandedServicos(prev => 
+      prev.includes(servico) 
+        ? prev.filter(s => s !== servico)
+        : [...prev, servico]
+    );
+  };
+
   const clientesAtuais = baseClientesData[baseClientesData.length - 1].ativos;
   const churnRate = 0.67;
   const npsAtual = npsData[npsData.length - 1].nps;
 
   return (
     <div className="p-8 space-y-8 animate-fade-in">
-      <div>
-        <h1 className="text-4xl font-bold text-foreground mb-2">Clientes & Retenção</h1>
-        <p className="text-muted-foreground">Análise completa da base de clientes do Grupo FN</p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Clientes & Retenção</h1>
+          <p className="text-muted-foreground">Análise completa da base de clientes do Grupo FN</p>
+        </div>
+        <AccountSelector />
       </div>
 
       <FilterBadges />
@@ -143,20 +215,53 @@ export default function Clients() {
           </ResponsiveContainer>
         </ExpandableChart>
 
-        <ExpandableChart 
-          title="Clientes por Serviço"
-          description="Distribuição de clientes entre as diferentes linhas de serviço do Grupo FN. Um cliente pode contratar múltiplos serviços."
-        >
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={clientesPorServico} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis type="number" stroke="hsl(var(--muted-foreground))" />
-              <YAxis dataKey="servico" type="category" stroke="hsl(var(--muted-foreground))" width={120} />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="clientes" fill="hsl(217 91% 60%)" name="Clientes" cursor="pointer" />
-            </BarChart>
-          </ResponsiveContainer>
-        </ExpandableChart>
+        {/* Clientes por Serviço com Drill-down */}
+        <Card className="p-6 gradient-card border-border shadow-soft lg:col-span-2">
+          <h3 className="text-lg font-semibold text-foreground mb-6">Clientes por Serviço (clique para ver produtos)</h3>
+          <div className="space-y-3">
+            {clientesPorServico.map((item) => {
+              const isExpanded = expandedServicos.includes(item.servico);
+              return (
+                <div key={item.servico} className="space-y-2">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-between p-4 h-auto hover:bg-muted/50"
+                    onClick={() => toggleServico(item.servico)}
+                  >
+                    <div className="flex items-center gap-4 flex-1">
+                      <span className="font-medium text-foreground min-w-[160px] text-left">{item.servico}</span>
+                      <div className="flex-1 max-w-md">
+                        <Progress value={item.percentual} className="h-3" />
+                      </div>
+                      <span className="text-sm text-muted-foreground min-w-[120px] text-right">
+                        {item.clientes} clientes ({item.percentual}%)
+                      </span>
+                    </div>
+                    {isExpanded ? (
+                      <ChevronUp className="h-4 w-4 text-muted-foreground ml-2" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-muted-foreground ml-2" />
+                    )}
+                  </Button>
+                  
+                  {isExpanded && (
+                    <div className="ml-8 pl-4 border-l-2 border-primary/20 space-y-2 animate-fade-in">
+                      {item.produtos.map((produto) => (
+                        <div 
+                          key={produto.nome} 
+                          className="flex items-center justify-between py-2 px-4 bg-muted/30 rounded-lg"
+                        >
+                          <span className="text-sm text-foreground">{produto.nome}</span>
+                          <span className="text-sm font-medium text-primary">{produto.clientes} clientes</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </Card>
 
         <ExpandableChart 
           title="Cross-sell: Clientes com Múltiplos Serviços"
@@ -213,25 +318,29 @@ export default function Clients() {
           </ResponsiveContainer>
         </ExpandableChart>
 
+        {/* Regimes Tributários vs Faturamento */}
         <Card className="p-6 gradient-card border-border shadow-soft">
-          <h3 className="text-lg font-semibold text-foreground mb-6">Segmentação por Tamanho</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-6">Regimes Tributários vs Faturamento</h3>
           <div className="space-y-6">
-            {segmentacaoTamanho.map((seg) => (
-              <div key={seg.tamanho} className="space-y-2">
+            {regimesTributarios.map((regime) => (
+              <div key={regime.regime} className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-foreground font-medium">{seg.tamanho}</span>
+                  <span className="text-foreground font-medium">{regime.regime}</span>
                   <span className="text-muted-foreground">
-                    {seg.clientes} ({seg.percentual}%)
+                    {regime.clientes} ({regime.percentual}%)
                   </span>
                 </div>
-                <Progress value={seg.percentual} className="h-2" />
+                <Progress value={regime.percentual} className="h-2" />
+                <p className="text-xs text-muted-foreground">
+                  Faturamento médio: R$ {(regime.faturamentoMedio / 1000).toLocaleString("pt-BR")}K/ano
+                </p>
               </div>
             ))}
           </div>
           <div className="mt-6 pt-4 border-t border-border">
             <p className="text-xs text-muted-foreground">
-              <strong>Oportunidade:</strong> {multiServicos[0].value} clientes ({multiServicos[0].percentual}%) 
-              usam apenas 1 serviço - potencial para cross-sell
+              <strong>Insight:</strong> Clientes de Lucro Real representam apenas 10% da base mas possuem 
+              faturamento médio 25x maior que Simples Nacional - potencial para upsell de serviços premium.
             </p>
           </div>
         </Card>

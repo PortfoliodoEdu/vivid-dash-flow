@@ -5,6 +5,7 @@ interface Filters {
   region?: string;
   category?: string;
   businessUnit?: string;
+  account?: string;
 }
 
 interface FilterContextType {
@@ -15,8 +16,15 @@ interface FilterContextType {
 
 const FilterContext = createContext<FilterContextType | undefined>(undefined);
 
+export const ACCOUNTS = [
+  { id: "all", name: "Todas as Contas" },
+  { id: "zov", name: "Conta 1" },
+  { id: "papaya", name: "Conta 2" },
+  { id: "mdias", name: "Conta 3" },
+];
+
 export const FilterProvider = ({ children }: { children: ReactNode }) => {
-  const [filters, setFilters] = useState<Filters>({});
+  const [filters, setFilters] = useState<Filters>({ account: "all" });
 
   const setFilter = (key: keyof Filters, value: string | undefined) => {
     setFilters((prev) => ({
@@ -26,7 +34,7 @@ export const FilterProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const clearFilters = () => {
-    setFilters({});
+    setFilters({ account: "all" });
   };
 
   return (
