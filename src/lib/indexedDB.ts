@@ -6,7 +6,7 @@ const STORE_NAME = 'pageData';
 
 export interface PageData {
   pageId: string;
-  data: any[];
+  data: any; // Can be any[] or Record<string, any[]>
   uploadedAt: Date;
   fileName: string;
 }
@@ -37,7 +37,7 @@ export const initDB = (): Promise<IDBDatabase> => {
   });
 };
 
-export const savePageData = async (pageId: string, data: any[], fileName: string): Promise<void> => {
+export const savePageData = async (pageId: string, data: any, fileName: string): Promise<void> => {
   const db = await initDB();
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([STORE_NAME], 'readwrite');
@@ -50,9 +50,17 @@ export const savePageData = async (pageId: string, data: any[], fileName: string
       fileName
     };
 
+    console.log('[IndexedDB] Saving data:', { pageId, fileName, dataKeys: typeof data === 'object' ? Object.keys(data) : 'array' });
+
     const request = store.put(pageData);
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve();
+    request.onerror = () => {
+      console.error('[IndexedDB] Error saving:', request.error);
+      reject(request.error);
+    };
+    request.onsuccess = () => {
+      console.log('[IndexedDB] Data saved successfully for', pageId);
+      resolve();
+    };
   });
 };
 
