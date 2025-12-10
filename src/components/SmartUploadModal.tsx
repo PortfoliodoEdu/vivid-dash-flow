@@ -256,103 +256,88 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
           <DialogDescription>Importe dados para o dashboard {template.name}</DialogDescription>
         </VisuallyHidden.Root>
         
-        {/* Header Gradient */}
-        <div className="bg-gradient-to-r from-primary to-primary/80 p-6 text-primary-foreground">
-          <div className="flex justify-between items-start">
-            <div>
-              <h2 className="text-2xl font-bold flex items-center gap-3">
-                {step === 'mapping' ? (
-                  <>
-                    <Link2 className="w-7 h-7" />
-                    Mapeamento de Colunas
-                  </>
-                ) : (
-                  <>
-                    <Database className="w-7 h-7" />
-                    Central de Importação
-                  </>
-                )}
-              </h2>
-              <p className="text-primary-foreground/80 mt-1">
-                {step === 'mapping' 
-                  ? `Aba: ${currentMappingSheet?.name} (${currentMappingSheetIndex + 1}/${sheetsNeedingMapping.length})`
-                  : `${template.name} — ${template.description}`
-                }
-              </p>
+        {/* Header - Simplified */}
+        <div className="bg-gradient-to-r from-primary to-primary/80 p-5 text-primary-foreground">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              {step === 'mapping' ? (
+                <Link2 className="w-6 h-6" />
+              ) : (
+                <Database className="w-6 h-6" />
+              )}
+              <div>
+                <h2 className="text-xl font-bold">
+                  {step === 'template' && 'Estrutura dos Dados'}
+                  {step === 'upload' && 'Upload do Arquivo'}
+                  {step === 'mapping' && 'Conectar Colunas'}
+                  {step === 'preview' && 'Confirmar Importação'}
+                </h2>
+                <p className="text-sm text-primary-foreground/70">
+                  {step === 'mapping' && sheetsNeedingMapping.length > 1
+                    ? `Planilha ${currentMappingSheetIndex + 1} de ${sheetsNeedingMapping.length}`
+                    : template.name
+                  }
+                </p>
+              </div>
             </div>
             <button 
               onClick={handleClose} 
               className="text-primary-foreground/60 hover:text-primary-foreground transition-colors p-1"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5" />
             </button>
           </div>
           
-          {/* Progress Steps */}
-          <div className="flex items-center gap-2 mt-6">
-            {progressSteps.map((s, i) => (
-              <React.Fragment key={s}>
-                <div className={`
-                  flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-all
-                  ${progressSteps.indexOf(step) >= i
-                    ? 'bg-primary-foreground text-primary' 
-                    : 'bg-primary-foreground/20 text-primary-foreground/60'}
-                `}>
-                  {i + 1}
-                </div>
-                {i < progressSteps.length - 1 && (
-                  <div className={`flex-1 h-0.5 ${
-                    progressSteps.indexOf(step) > i 
+          {/* Progress - Simpler visual */}
+          <div className="flex items-center gap-1 mt-4">
+            {progressSteps.map((s, i) => {
+              const isCurrent = step === s;
+              const isPast = progressSteps.indexOf(step) > i;
+              return (
+                <div 
+                  key={s}
+                  className={`h-1 flex-1 rounded-full transition-all ${
+                    isCurrent 
                       ? 'bg-primary-foreground' 
-                      : 'bg-primary-foreground/20'
-                  }`} />
-                )}
-              </React.Fragment>
-            ))}
+                      : isPast 
+                        ? 'bg-primary-foreground/80' 
+                        : 'bg-primary-foreground/20'
+                  }`}
+                />
+              );
+            })}
           </div>
         </div>
 
         <div className="p-6">
           {/* Step 1: Template Info */}
           {step === 'template' && (
-            <div className="space-y-6 animate-in fade-in duration-300">
-              <div>
-                <h3 className="text-lg font-semibold text-foreground mb-1">
-                  Estrutura do Template
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Você só precisa preencher dados brutos. O sistema calcula o resto automaticamente.
-                </p>
-              </div>
-
-              {/* Sheets Preview */}
-              <div className="space-y-4 max-h-[300px] overflow-y-auto">
+            <div className="space-y-5 animate-in fade-in duration-300">
+              {/* Sheets Preview - Compact */}
+              <div className="space-y-3 max-h-[280px] overflow-y-auto">
                 {template.sheets.map((sheet, idx) => (
                   <div 
                     key={idx} 
-                    className="border border-border rounded-lg overflow-hidden bg-muted/30"
+                    className="border border-border rounded-lg overflow-hidden bg-muted/20"
                   >
-                    <div className="bg-muted px-4 py-3 flex items-center gap-2">
+                    <div className="bg-muted/50 px-4 py-2 flex items-center gap-2">
                       <Table className="w-4 h-4 text-primary" />
-                      <span className="font-medium text-foreground">{sheet.name}</span>
-                      <span className="text-xs text-muted-foreground">— {sheet.description}</span>
+                      <span className="font-medium text-foreground text-sm">{sheet.name}</span>
                     </div>
-                    <div className="p-4">
-                      <div className="flex flex-wrap gap-2">
+                    <div className="p-3">
+                      <div className="flex flex-wrap gap-1.5">
                         {sheet.columns.map((col, colIdx) => (
-                          <div 
+                          <span 
                             key={colIdx}
                             className={`
-                              px-3 py-1.5 rounded-full text-xs flex items-center gap-1.5
+                              px-2 py-1 rounded text-xs
                               ${col.required 
-                                ? 'bg-primary/10 text-primary border border-primary/20' 
+                                ? 'bg-primary/10 text-primary font-medium' 
                                 : 'bg-muted text-muted-foreground'}
                             `}
-                            title={col.description}
                           >
-                            <span>{col.label}</span>
-                            {col.required && <span className="text-primary">*</span>}
-                          </div>
+                            {col.label}{col.required && ' *'}
+                          </span>
                         ))}
                       </div>
                     </div>
@@ -360,89 +345,88 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
                 ))}
               </div>
 
-              {/* Actions */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <p className="text-xs text-muted-foreground text-center">
+                * Campos obrigatórios
+              </p>
+
+              {/* Actions - Simplified */}
+              <div className="space-y-2 pt-2">
                 <Button 
-                  onClick={handleDownloadTemplate}
-                  variant="outline"
-                  className="flex-1 gap-2"
+                  onClick={() => setStep('upload')} 
+                  className="w-full gap-2"
                 >
-                  <Download className="w-4 h-4" />
-                  Baixar Template XLSX
+                  Fazer Upload
+                  <ArrowRight className="w-4 h-4" />
                 </Button>
                 
-                {googleSheetsUrl && (
+                <div className="flex gap-2">
                   <Button 
-                    variant="outline"
-                    className="flex-1 gap-2"
-                    onClick={() => window.open(googleSheetsUrl, '_blank')}
+                    onClick={handleDownloadTemplate}
+                    variant="ghost"
+                    className="flex-1 gap-2 text-muted-foreground"
+                    size="sm"
                   >
-                    <ExternalLink className="w-4 h-4" />
-                    Abrir no Google Sheets
+                    <Download className="w-3.5 h-3.5" />
+                    Baixar Template
                   </Button>
-                )}
+                  
+                  {googleSheetsUrl && (
+                    <Button 
+                      variant="ghost"
+                      className="flex-1 gap-2 text-muted-foreground"
+                      size="sm"
+                      onClick={() => window.open(googleSheetsUrl, '_blank')}
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Google Sheets
+                    </Button>
+                  )}
+                </div>
               </div>
-
-              <Button 
-                onClick={() => setStep('upload')} 
-                className="w-full gap-2"
-              >
-                Já tenho os dados preenchidos
-                <ArrowRight className="w-4 h-4" />
-              </Button>
             </div>
           )}
 
           {/* Step 2: Upload */}
           {step === 'upload' && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-              <div>
-                <h3 className="text-lg font-semibold text-foreground mb-1">
-                  Faça o Upload
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Arraste seu arquivo ou clique para selecionar.
-                </p>
-              </div>
-
+            <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
               <div 
                 {...getRootProps()} 
                 className={`
-                  border-2 border-dashed rounded-xl p-10 text-center transition-all cursor-pointer
+                  border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer
                   ${isAnalyzing 
                     ? 'border-muted bg-muted/50 cursor-wait' 
                     : isDragActive 
                       ? 'border-primary bg-primary/5' 
-                      : 'border-border hover:border-primary/50 hover:bg-muted/30'}
+                      : 'border-border hover:border-primary/50 hover:bg-muted/20'}
                 `}
               >
                 <input {...getInputProps()} />
                 
                 <div className={`
-                  mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-4
+                  mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-3
                   ${isDragActive ? 'bg-primary/10' : 'bg-muted'}
                 `}>
                   {isAnalyzing ? (
-                    <Loader2 className="w-10 h-10 text-primary animate-spin" />
+                    <Loader2 className="w-8 h-8 text-primary animate-spin" />
                   ) : (
-                    <UploadCloud className={`w-10 h-10 ${isDragActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <UploadCloud className={`w-8 h-8 ${isDragActive ? 'text-primary' : 'text-muted-foreground'}`} />
                   )}
                 </div>
                 
-                <p className="text-lg font-medium text-foreground">
+                <p className="text-base font-medium text-foreground">
                   {isAnalyzing 
-                    ? "Analisando arquivo..." 
+                    ? "Analisando..." 
                     : isDragActive 
-                      ? "Solte o arquivo aqui..." 
-                      : "Arraste e solte sua planilha"}
+                      ? "Solte aqui" 
+                      : "Arraste sua planilha"}
                 </p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Suporta arquivos .xlsx, .xls ou .csv
+                <p className="text-xs text-muted-foreground mt-1">
+                  .xlsx, .xls ou .csv
                 </p>
               </div>
 
-              <Button variant="ghost" onClick={handleBack} className="w-full">
-                ← Voltar para estrutura
+              <Button variant="ghost" onClick={handleBack} className="w-full text-muted-foreground">
+                ← Voltar
               </Button>
             </div>
           )}
@@ -469,69 +453,57 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
 
           {/* Step 4: Preview */}
           {step === 'preview' && fileAnalysis && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-              {/* Success Header */}
-              <div className="text-center py-2">
-                <div className="mx-auto bg-green-500/10 w-16 h-16 rounded-full flex items-center justify-center mb-3">
-                  <CheckCircle2 className="w-8 h-8 text-green-500" />
+            <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+              {/* Success Header - Compact */}
+              <div className="flex items-center gap-4 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+                <div className="bg-green-500/10 w-12 h-12 rounded-full flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-6 h-6 text-green-500" />
                 </div>
-                <h3 className="text-xl font-bold text-foreground">Pronto para Importar!</h3>
-                <p className="text-muted-foreground">{fileAnalysis.fileName}</p>
-              </div>
-
-              {/* Summary */}
-              <div className="bg-muted/50 rounded-lg p-4 border border-border space-y-3">
-                <div className="flex justify-between items-center pb-3 border-b border-border">
-                  <span className="text-sm text-muted-foreground">Total de registros</span>
-                  <span className="font-mono font-bold text-xl text-foreground">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-foreground">Pronto para importar</h3>
+                  <p className="text-sm text-muted-foreground truncate">{fileAnalysis.fileName}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="text-2xl font-bold text-foreground">
                     {fileAnalysis.totalRows.toLocaleString('pt-BR')}
-                  </span>
-                </div>
-
-                {fileAnalysis.sheets.map((sheet, idx) => (
-                  <div key={idx} className="flex justify-between items-center text-sm">
-                    <span className="flex items-center gap-2 text-muted-foreground">
-                      <FileSpreadsheet className="w-4 h-4" />
-                      {sheet.name}
-                    </span>
-                    <span className="text-foreground">{sheet.rows} linhas</span>
                   </div>
-                ))}
+                  <div className="text-xs text-muted-foreground">registros</div>
+                </div>
               </div>
 
-              {/* Warnings */}
-              {fileAnalysis.warnings.length > 0 && (
-                <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">
-                  <div className="flex items-start gap-2">
-                    <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-amber-600 dark:text-amber-400 mb-1">
-                        Atenção
-                      </p>
-                      <ul className="text-sm text-amber-600/80 dark:text-amber-400/80 space-y-1">
-                        {fileAnalysis.warnings.map((w, i) => (
-                          <li key={i}>• {w}</li>
-                        ))}
-                      </ul>
+              {/* Sheets summary - if multiple */}
+              {fileAnalysis.sheets.length > 1 && (
+                <div className="bg-muted/30 rounded-lg p-3 space-y-2">
+                  {fileAnalysis.sheets.map((sheet, idx) => (
+                    <div key={idx} className="flex justify-between items-center text-sm">
+                      <span className="flex items-center gap-2 text-muted-foreground">
+                        <FileSpreadsheet className="w-3.5 h-3.5" />
+                        {sheet.name}
+                      </span>
+                      <span className="text-foreground">{sheet.rows} linhas</span>
                     </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Warnings - Compact */}
+              {fileAnalysis.warnings.length > 0 && (
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
+                  <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 text-sm">
+                    <AlertTriangle className="w-4 h-4 shrink-0" />
+                    <span>{fileAnalysis.warnings[0]}</span>
                   </div>
                 </div>
               )}
 
-              {/* Note */}
-              <div className="bg-primary/5 border border-primary/10 rounded-lg p-3 text-sm text-primary flex items-center gap-2">
-                <Database className="w-4 h-4 flex-shrink-0" />
-                O sistema recalculará todos os indicadores automaticamente.
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-3 pt-2">
-                <Button variant="ghost" onClick={handleBack} className="flex-1">
+              {/* Actions - Clear */}
+              <div className="flex gap-3 pt-3">
+                <Button variant="ghost" onClick={handleBack} className="flex-1 text-muted-foreground">
                   Voltar
                 </Button>
                 <Button onClick={handleConfirmImport} className="flex-1 gap-2">
-                  Confirmar Importação
-                  <ArrowRight className="w-4 h-4" />
+                  <CheckCircle2 className="w-4 h-4" />
+                  Importar Dados
                 </Button>
               </div>
             </div>
