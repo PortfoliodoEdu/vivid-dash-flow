@@ -317,6 +317,10 @@ export const analyzeUploadedFile = async (file: File, templateId: string): Promi
 
   console.log('[analyzeUploadedFile] Starting analysis for template:', templateId);
 
+  // Check if template requires multiple sheets
+  const requiredSheetCount = template?.sheets.length || 1;
+  console.log('[analyzeUploadedFile] Template requires', requiredSheetCount, 'sheet(s)');
+
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     
@@ -327,6 +331,17 @@ export const analyzeUploadedFile = async (file: File, templateId: string): Promi
         
         console.log('[analyzeUploadedFile] Excel sheets found:', workbook.SheetNames);
         console.log('[analyzeUploadedFile] Template sheets expected:', template?.sheets.map(s => s.name));
+
+        // Validate: file must have at least as many sheets as the template requires
+        if (template && workbook.SheetNames.length < template.sheets.length) {
+          const missingCount = template.sheets.length - workbook.SheetNames.length;
+          const expectedSheets = template.sheets.map(s => s.name).join(', ');
+          reject(new Error(
+            `Seu arquivo tem ${workbook.SheetNames.length} aba(s), mas este dashboard precisa de ${template.sheets.length} aba(s): ${expectedSheets}. ` +
+            `Por favor, envie um arquivo com todas as abas necessárias.`
+          ));
+          return;
+        }
 
         const sheets = workbook.SheetNames.map((sheetName, sheetIndex) => {
           const worksheet = workbook.Sheets[sheetName];
