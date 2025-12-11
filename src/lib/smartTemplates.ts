@@ -390,8 +390,8 @@ export const analyzeUploadedFile = async (file: File, templateId: string): Promi
               };
             });
 
-            // Check if any mapping needs review
-            const hasLowConfidence = suggestedMappings.some(m => m.targetKey && m.confidence < 0.9);
+            // Check if any mapping needs review - require review for ANY non-perfect match
+            const hasLowConfidence = suggestedMappings.some(m => m.targetKey && m.confidence < 0.98);
             const hasMissing = mappingResult.missingRequired.length > 0;
             const hasUnmapped = mappingResult.unmappedSource.length > 0;
             const notAllMapped = suggestedMappings.filter(m => m.targetKey).length < targetColumns.filter(t => t.required).length;
