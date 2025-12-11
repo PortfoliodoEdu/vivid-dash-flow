@@ -81,6 +81,29 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
 
     try {
       const analysis = await analyzeUploadedFile(file, pageId);
+      
+      // Validate: check if file has enough columns for required fields
+      const templateConfig = smartTemplates[pageId];
+      if (templateConfig) {
+        for (const sheet of analysis.sheets) {
+          const templateSheet = templateConfig.sheets.find(s => s.name === sheet.matchedTemplate) || templateConfig.sheets[0];
+          if (templateSheet) {
+            const requiredCount = templateSheet.columns.filter(c => c.required).length;
+            const fileColumnCount = sheet.columns.length;
+            
+            if (fileColumnCount < requiredCount) {
+              toast.error(
+                `Sua planilha tem apenas ${fileColumnCount} coluna(s), mas são necessárias no mínimo ${requiredCount} para os campos obrigatórios. Por favor, envie um arquivo com todas as colunas necessárias.`,
+                { duration: 8000 }
+              );
+              setUploadedFile(null);
+              setIsAnalyzing(false);
+              return;
+            }
+          }
+        }
+      }
+      
       setFileAnalysis(analysis);
       
       // Check if we need column mapping
@@ -636,6 +659,7 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
                   type: c.type
                 }))}
                 suggestedMappings={currentMappingSheet.mappingAnalysis.suggestedMappings}
+                sampleData={currentMappingSheet.preview}
                 onConfirm={handleMappingConfirm}
                 onCancel={handleMappingCancel}
               />
