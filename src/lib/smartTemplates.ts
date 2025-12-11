@@ -43,8 +43,8 @@ export const smartTemplates: Record<string, SmartTemplate> = {
           { key: 'mes_ano', label: 'Mês/Ano', type: 'date', required: true, description: 'Ex: 2024-01' },
           { key: 'receita_total', label: 'Receita Total (R$)', type: 'number', required: true, description: 'Faturamento bruto do mês' },
           { key: 'custos_totais', label: 'Custos Totais (R$)', type: 'number', required: true, description: 'Soma de todas as despesas' },
-          { key: 'numero_clientes', label: 'Nº Clientes Ativos', type: 'number', required: false, description: 'Total de clientes no mês' },
-          { key: 'numero_funcionarios', label: 'Nº Funcionários', type: 'number', required: false, description: 'Headcount do mês' },
+          { key: 'numero_clientes', label: 'Nº Clientes Ativos', type: 'number', required: true, description: 'Total de clientes no mês (use 0 se não aplicável)' },
+          { key: 'numero_funcionarios', label: 'Nº Funcionários', type: 'number', required: true, description: 'Headcount do mês (use 0 se não aplicável)' },
         ],
         examples: [
           { mes_ano: '2024-01', receita_total: 150000, custos_totais: 80000, numero_clientes: 45, numero_funcionarios: 12 },
@@ -104,7 +104,7 @@ export const smartTemplates: Record<string, SmartTemplate> = {
           { key: 'categoria', label: 'Categoria', type: 'text', required: true, description: 'Ex: Receita de Serviços, Salários' },
           { key: 'tipo', label: 'Tipo', type: 'select', required: true, description: 'Receita ou Despesa', options: ['Receita', 'Despesa'] },
           { key: 'valor', label: 'Valor (R$)', type: 'number', required: true, description: 'Valor do lançamento' },
-          { key: 'descricao', label: 'Descrição', type: 'text', required: false, description: 'Detalhamento opcional' },
+          { key: 'descricao', label: 'Descrição', type: 'text', required: true, description: 'Detalhamento (use "N/A" se não aplicável)' },
         ],
         examples: [
           { data: '2024-01-01', categoria: 'Receita de Serviços', tipo: 'Receita', valor: 50000, descricao: 'Consultoria Empresa X' },
@@ -166,7 +166,7 @@ export const smartTemplates: Record<string, SmartTemplate> = {
           { key: 'canal', label: 'Canal', type: 'select', required: true, description: 'Origem', options: ['Google Ads', 'Facebook', 'Instagram', 'LinkedIn', 'Indicação', 'Orgânico'] },
           { key: 'investimento', label: 'Investimento (R$)', type: 'number', required: true, description: 'Valor gasto' },
           { key: 'leads', label: 'Leads Gerados', type: 'number', required: true, description: 'Quantidade de leads' },
-          { key: 'conversoes', label: 'Conversões', type: 'number', required: false, description: 'Vendas originadas' },
+          { key: 'conversoes', label: 'Conversões', type: 'number', required: true, description: 'Vendas originadas (use 0 se não aplicável)' },
         ],
         examples: [
           { mes: '2024-01', campanha: 'Black Friday', canal: 'Google Ads', investimento: 5000, leads: 150, conversoes: 12 },
@@ -187,7 +187,7 @@ export const smartTemplates: Record<string, SmartTemplate> = {
         columns: [
           { key: 'nome', label: 'Nome/Razão Social', type: 'text', required: true, description: 'Nome do cliente' },
           { key: 'servico', label: 'Serviço Principal', type: 'text', required: true, description: 'Ex: Contabilidade, BPO' },
-          { key: 'regime', label: 'Regime Tributário', type: 'select', required: false, description: 'Tipo de tributação', options: ['Simples Nacional', 'Lucro Presumido', 'Lucro Real', 'MEI'] },
+          { key: 'regime', label: 'Regime Tributário', type: 'select', required: true, description: 'Tipo de tributação', options: ['Simples Nacional', 'Lucro Presumido', 'Lucro Real', 'MEI', 'N/A'] },
           { key: 'mensalidade', label: 'Mensalidade (R$)', type: 'number', required: true, description: 'Valor do contrato mensal' },
           { key: 'data_inicio', label: 'Data Início', type: 'date', required: true, description: 'Início do contrato' },
         ],
@@ -226,7 +226,7 @@ export const smartTemplates: Record<string, SmartTemplate> = {
           { key: 'servico', label: 'Serviço', type: 'text', required: true, description: 'Linha de serviço' },
           { key: 'receita', label: 'Receita (R$)', type: 'number', required: true, description: 'Faturamento do serviço' },
           { key: 'custo_direto', label: 'Custo Direto (R$)', type: 'number', required: true, description: 'Custos alocados' },
-          { key: 'clientes', label: 'Nº Clientes', type: 'number', required: false, description: 'Clientes neste serviço' },
+          { key: 'clientes', label: 'Nº Clientes', type: 'number', required: true, description: 'Clientes neste serviço (use 0 se não aplicável)' },
         ],
         examples: [
           { mes: '2024-01', servico: 'Contabilidade', receita: 80000, custo_direto: 40000, clientes: 120 },
@@ -249,7 +249,7 @@ export const smartTemplates: Record<string, SmartTemplate> = {
           { key: 'tipo', label: 'Tipo', type: 'select', required: true, description: 'Entrada ou Saída', options: ['Entrada', 'Saída'] },
           { key: 'categoria', label: 'Categoria', type: 'text', required: true, description: 'Ex: Recebimento, Fornecedor' },
           { key: 'valor', label: 'Valor (R$)', type: 'number', required: true, description: 'Valor da movimentação' },
-          { key: 'descricao', label: 'Descrição', type: 'text', required: false, description: 'Detalhamento' },
+          { key: 'descricao', label: 'Descrição', type: 'text', required: true, description: 'Detalhamento (use "N/A" se não aplicável)' },
         ],
         examples: [
           { data: '2024-01-05', tipo: 'Entrada', categoria: 'Recebimento Clientes', valor: 45000, descricao: 'Mensalidades Janeiro' },
