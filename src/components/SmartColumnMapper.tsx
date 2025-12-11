@@ -223,19 +223,19 @@ const SmartColumnMapper: React.FC<SmartColumnMapperProps> = ({
                     )}>
                       <SelectValue placeholder="Selecione..." />
                     </SelectTrigger>
-                    <SelectContent className="bg-popover border-border z-50">
+                    <SelectContent className="bg-popover border-border z-50 max-h-[280px]">
                       <SelectItem value="none">
                         <span className="text-muted-foreground italic">-- Nenhuma --</span>
                       </SelectItem>
                       {availableSources.map(col => {
                         const colSamples = getSampleValues(col);
                         return (
-                          <SelectItem key={col} value={col}>
-                            <div className="flex flex-col">
+                          <SelectItem key={col} value={col} className="py-2">
+                            <div>
                               <span className="font-medium">{col}</span>
                               {colSamples.length > 0 && (
-                                <span className="text-xs text-muted-foreground">
-                                  Ex: {colSamples.join(', ')}
+                                <span className="text-xs text-muted-foreground ml-2">
+                                  ({colSamples.slice(0, 2).join(', ')}...)
                                 </span>
                               )}
                             </div>
