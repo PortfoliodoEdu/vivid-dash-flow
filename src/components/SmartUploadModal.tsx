@@ -12,7 +12,9 @@ import {
   Table,
   ExternalLink,
   Loader2,
-  Link2
+  Link2,
+  Search,
+  Columns
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from './ui/dialog';
@@ -36,7 +38,7 @@ interface SmartUploadModalProps {
   googleSheetsUrl?: string;
 }
 
-type Step = 'template' | 'upload' | 'mapping' | 'preview';
+type Step = 'template' | 'upload' | 'mapping-intro' | 'mapping' | 'preview';
 
 const SmartUploadModal: React.FC<SmartUploadModalProps> = ({ 
   isOpen, 
@@ -86,8 +88,7 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
       // Check if we need column mapping
       if (analysis.needsColumnMapping) {
         setCurrentMappingSheetIndex(0);
-        setStep('mapping');
-        toast.info("Algumas colunas precisam ser mapeadas.");
+        setStep('mapping-intro');
       } else {
         setStep('preview');
         if (analysis.warnings.length > 0) {
@@ -222,11 +223,13 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
       if (currentMappingSheetIndex > 0) {
         setCurrentMappingSheetIndex(prev => prev - 1);
       } else {
-        setStep('upload');
-        setFileAnalysis(null);
-        setUploadedFile(null);
-        setConfirmedMappings({});
+        setStep('mapping-intro');
       }
+    } else if (step === 'mapping-intro') {
+      setStep('upload');
+      setFileAnalysis(null);
+      setUploadedFile(null);
+      setConfirmedMappings({});
     } else if (step === 'upload') {
       setStep('template');
     }
@@ -241,12 +244,20 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
   const getProgressSteps = () => {
     const base = ['template', 'upload'];
     if (fileAnalysis?.needsColumnMapping) {
-      base.push('mapping');
+      base.push('mapping-intro', 'mapping');
     }
     base.push('preview');
     return base;
   };
   const progressSteps = getProgressSteps();
+
+  // Get required fields for intro display
+  const getRequiredFields = () => {
+    if (!fileAnalysis || !currentMappingSheet?.mappingAnalysis) return [];
+    return currentMappingSheet.mappingAnalysis.targetColumns
+      .filter(c => c.required)
+      .map(c => c.label);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -260,7 +271,7 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
         <div className="bg-gradient-to-r from-primary to-primary/80 p-5 text-primary-foreground">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              {step === 'mapping' ? (
+              {step === 'mapping' || step === 'mapping-intro' ? (
                 <Link2 className="w-6 h-6" />
               ) : (
                 <Database className="w-6 h-6" />
@@ -269,6 +280,7 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
                 <h2 className="text-xl font-bold">
                   {step === 'template' && 'Estrutura dos Dados'}
                   {step === 'upload' && 'Upload do Arquivo'}
+                  {step === 'mapping-intro' && 'Preparando Mapeamento'}
                   {step === 'mapping' && 'Conectar Colunas'}
                   {step === 'preview' && 'Confirmar Importação'}
                 </h2>
@@ -428,6 +440,85 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
               <Button variant="ghost" onClick={handleBack} className="w-full text-muted-foreground">
                 ← Voltar
               </Button>
+            </div>
+          )}
+
+          {/* Step 2.5: Mapping Intro - Onboarding */}
+          {step === 'mapping-intro' && fileAnalysis && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+              {/* Visual Checklist */}
+              <div className="space-y-4">
+                {/* File loaded */}
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-5 h-5 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">Arquivo carregado</p>
+                    <p className="text-sm text-muted-foreground">{fileAnalysis.fileName}</p>
+                  </div>
+                </div>
+
+                {/* Columns found */}
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <Search className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">Colunas identificadas</p>
+                    <p className="text-sm text-muted-foreground">
+                      {currentMappingSheet?.mappingAnalysis?.sourceColumns.length || 0} colunas encontradas no seu arquivo
+                    </p>
+                  </div>
+                </div>
+
+                {/* Next step */}
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                    <Columns className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">Próximo: conectar aos campos</p>
+                    <p className="text-sm text-muted-foreground">
+                      Indique qual coluna do seu arquivo corresponde a cada campo do sistema.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Required Fields Info */}
+              {getRequiredFields().length > 0 && (
+                <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-4">
+                  <p className="text-sm font-medium text-amber-600 dark:text-amber-400 mb-3">
+                    Campos obrigatórios que você precisará conectar:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {getRequiredFields().map((field, idx) => (
+                      <span 
+                        key={idx}
+                        className="px-3 py-1.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full text-sm font-medium"
+                      >
+                        {field}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="space-y-2 pt-2">
+                <Button 
+                  onClick={() => setStep('mapping')} 
+                  className="w-full gap-2"
+                >
+                  Continuar para Mapeamento
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+                
+                <Button variant="ghost" onClick={handleBack} className="w-full text-muted-foreground">
+                  ← Voltar
+                </Button>
+              </div>
             </div>
           )}
 

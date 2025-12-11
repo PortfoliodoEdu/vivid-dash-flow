@@ -5,7 +5,6 @@ import {
   AlertTriangle,
   Link2,
   Link2Off,
-  Sparkles,
   CircleDot,
   ArrowRight
 } from 'lucide-react';
@@ -125,23 +124,6 @@ const SmartColumnMapper: React.FC<SmartColumnMapperProps> = ({
 
   return (
     <div className="space-y-5">
-      {/* Simple Intro */}
-      <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-        <div className="flex items-start gap-3">
-          <div className="bg-primary/10 p-2 rounded-lg shrink-0">
-            <Sparkles className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-foreground">
-              Conecte suas colunas às do sistema
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Associe cada coluna do seu arquivo à coluna correspondente no sistema.
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Status Summary - Simplified */}
       <div className="flex items-center gap-4 text-sm">
         <div className={cn(
