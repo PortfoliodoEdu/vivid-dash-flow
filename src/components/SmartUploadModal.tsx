@@ -12,9 +12,7 @@ import {
   Table,
   ExternalLink,
   Loader2,
-  Link2,
-  Search,
-  Columns
+  Link2
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from './ui/dialog';
@@ -443,75 +441,84 @@ const SmartUploadModal: React.FC<SmartUploadModalProps> = ({
             </div>
           )}
 
-          {/* Step 2.5: Mapping Intro - Onboarding */}
+          {/* Step 2.5: Mapping Intro - Ultra Explicit Onboarding */}
           {step === 'mapping-intro' && fileAnalysis && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-              {/* Visual Checklist */}
-              <div className="space-y-4">
-                {/* File loaded */}
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="w-5 h-5 text-green-500" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground">Arquivo carregado</p>
-                    <p className="text-sm text-muted-foreground">{fileAnalysis.fileName}</p>
-                  </div>
-                </div>
-
-                {/* Columns found */}
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <Search className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground">Colunas identificadas</p>
-                    <p className="text-sm text-muted-foreground">
-                      {currentMappingSheet?.mappingAnalysis?.sourceColumns.length || 0} colunas encontradas no seu arquivo
-                    </p>
-                  </div>
-                </div>
-
-                {/* Next step */}
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
-                    <Columns className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground">Próximo: conectar aos campos</p>
-                    <p className="text-sm text-muted-foreground">
-                      Indique qual coluna do seu arquivo corresponde a cada campo do sistema.
-                    </p>
-                  </div>
+            <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+              {/* Success indicators - compact */}
+              <div className="flex items-center gap-3 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
+                <div className="min-w-0">
+                  <span className="text-sm font-medium text-foreground">Arquivo carregado: </span>
+                  <span className="text-sm text-muted-foreground truncate">{fileAnalysis.fileName}</span>
                 </div>
               </div>
 
-              {/* Required Fields Info */}
+              {/* What will happen - ULTRA CLEAR */}
+              <div className="space-y-3">
+                <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+                  <span className="text-lg">👉</span> O que você vai fazer agora?
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Você vai dizer ao sistema <span className="text-foreground font-medium">qual coluna da sua planilha</span> representa cada informação que precisamos.
+                </p>
+                
+                {/* Simple example */}
+                <div className="bg-muted/50 rounded-lg p-3 border border-border/50">
+                  <p className="text-xs text-muted-foreground mb-2">Exemplo simples:</p>
+                  <p className="text-sm text-foreground">
+                    Se o sistema pede <span className="font-medium">"Receita Total"</span>, você escolhe qual coluna da sua planilha contém esse valor.
+                  </p>
+                </div>
+              </div>
+
+              {/* Why this is needed */}
+              <div className="space-y-2">
+                <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+                  <span className="text-lg">📌</span> Por que isso é necessário?
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Cada planilha usa nomes diferentes nas colunas. Precisamos que você <span className="text-foreground font-medium">confirme essas correspondências</span> antes de importar.
+                </p>
+              </div>
+
+              {/* Required Fields - THE MOST IMPORTANT */}
               {getRequiredFields().length > 0 && (
-                <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-4">
-                  <p className="text-sm font-medium text-amber-600 dark:text-amber-400 mb-3">
-                    Campos obrigatórios que você precisará conectar:
+                <div className="bg-amber-500/5 border border-amber-500/30 rounded-lg p-4 space-y-3">
+                  <h3 className="text-sm font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-2">
+                    <span>🔶</span> Campos que você vai precisar identificar:
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Na próxima tela, você vai apontar qual coluna da sua planilha contém:
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {getRequiredFields().map((field, idx) => (
                       <span 
                         key={idx}
-                        className="px-3 py-1.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full text-sm font-medium"
+                        className="px-3 py-1.5 bg-amber-500/15 text-amber-600 dark:text-amber-400 rounded-full text-sm font-medium border border-amber-500/30"
                       >
                         {field}
                       </span>
                     ))}
                   </div>
+                  <p className="text-xs text-muted-foreground italic">
+                    Se sua planilha usa outros nomes (ex: "Data", "Faturamento"), não tem problema — basta escolher a coluna certa.
+                  </p>
                 </div>
               )}
+
+              {/* How long it takes */}
+              <p className="text-xs text-center text-muted-foreground">
+                ⏱️ Leva menos de 30 segundos — você só escolhe as colunas em uma listinha.
+              </p>
 
               {/* Actions */}
               <div className="space-y-2 pt-2">
                 <Button 
                   onClick={() => setStep('mapping')} 
                   className="w-full gap-2"
+                  size="lg"
                 >
-                  Continuar para Mapeamento
+                  Próximo: Conectar Colunas
                   <ArrowRight className="w-4 h-4" />
                 </Button>
                 
