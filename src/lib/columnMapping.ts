@@ -168,11 +168,11 @@ export const generateMappings = (
     }
   }
   
-  // Determine if user review is needed
+  // Determine if user review is needed - require review for ANY non-perfect match
   const needsUserReview = 
     unmappedSource.length > 0 || 
     missingRequired.length > 0 ||
-    mappings.some(m => m.confidence < 0.9);
+    mappings.some(m => m.confidence < 0.98);
   
   return { mappings, unmappedSource, missingRequired, needsUserReview };
 };
