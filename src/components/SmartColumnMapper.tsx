@@ -4,9 +4,8 @@ import {
   X, 
   AlertTriangle,
   Link2,
-  Link2Off,
-  CircleDot,
-  ArrowRight
+  ArrowRight,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -16,6 +15,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup,
+  SelectLabel,
+  SelectSeparator
 } from './ui/select';
 import { cn } from '@/lib/utils';
 
@@ -40,6 +42,7 @@ interface SmartColumnMapperProps {
   sourceColumns: string[];
   targetColumns: TargetColumn[];
   suggestedMappings: ColumnMappingItem[];
+  sampleData?: Record<string, any>[];
   onConfirm: (mappings: ColumnMappingItem[]) => void;
   onCancel: () => void;
 }
@@ -49,28 +52,42 @@ const SmartColumnMapper: React.FC<SmartColumnMapperProps> = ({
   sourceColumns,
   targetColumns,
   suggestedMappings,
+  sampleData = [],
   onConfirm,
   onCancel
 }) => {
   const [mappings, setMappings] = useState<ColumnMappingItem[]>(suggestedMappings);
 
-  // Available targets (not yet mapped)
-  const availableTargets = useMemo(() => {
-    const mappedTargets = new Set(mappings.map(m => m.targetKey).filter(Boolean));
-    return targetColumns.filter(t => !mappedTargets.has(t.key));
+  // Available targets (not yet mapped) - split into required and optional
+  const { requiredTargets, optionalTargets, mappedTargetKeys } = useMemo(() => {
+    const mappedKeys = new Set(mappings.map(m => m.targetKey).filter(Boolean));
+    const available = targetColumns.filter(t => !mappedKeys.has(t.key));
+    return {
+      requiredTargets: available.filter(t => t.required),
+      optionalTargets: available.filter(t => !t.required),
+      mappedTargetKeys: mappedKeys
+    };
   }, [mappings, targetColumns]);
-
-  // Unmapped source columns
-  const unmappedSources = useMemo(() => {
-    const mappedSources = new Set(mappings.map(m => m.sourceColumn));
-    return sourceColumns.filter(s => !mappedSources.has(s));
-  }, [mappings, sourceColumns]);
 
   // Missing required columns
   const missingRequired = useMemo(() => {
-    const mappedTargets = new Set(mappings.map(m => m.targetKey).filter(Boolean));
-    return targetColumns.filter(t => t.required && !mappedTargets.has(t.key));
-  }, [mappings, targetColumns]);
+    return targetColumns.filter(t => t.required && !mappedTargetKeys.has(t.key));
+  }, [targetColumns, mappedTargetKeys]);
+
+  // Connected required fields (for progress)
+  const connectedRequired = useMemo(() => {
+    return targetColumns.filter(t => t.required && mappedTargetKeys.has(t.key));
+  }, [targetColumns, mappedTargetKeys]);
+
+  // Get sample values for a column
+  const getSampleValues = (columnName: string): string[] => {
+    if (!sampleData || sampleData.length === 0) return [];
+    return sampleData
+      .slice(0, 3)
+      .map(row => row[columnName])
+      .filter(v => v !== undefined && v !== null && v !== '')
+      .map(v => String(v).slice(0, 20));
+  };
 
   const handleMappingChange = (sourceColumn: string, newTargetKey: string | null) => {
     setMappings(prev => {
@@ -117,135 +134,181 @@ const SmartColumnMapper: React.FC<SmartColumnMapperProps> = ({
     onConfirm(validMappings);
   };
 
-  const matchedCount = mappings.filter(m => m.targetKey).length;
-  const requiredMatchedCount = mappings.filter(m => m.targetKey && m.isRequired).length;
   const totalRequired = targetColumns.filter(t => t.required).length;
-  const allRequiredMapped = requiredMatchedCount === totalRequired;
+  const allRequiredMapped = missingRequired.length === 0;
+
+  // Unmapped source columns
+  const unmappedSources = useMemo(() => {
+    const mappedSources = new Set(mappings.map(m => m.sourceColumn));
+    return sourceColumns.filter(s => !mappedSources.has(s));
+  }, [mappings, sourceColumns]);
 
   return (
     <div className="space-y-5">
-      {/* Status Summary - Simplified */}
-      <div className="flex items-center gap-4 text-sm">
-        <div className={cn(
-          "flex items-center gap-2 px-3 py-1.5 rounded-full",
-          allRequiredMapped 
-            ? "bg-green-500/10 text-green-600 dark:text-green-400" 
-            : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-        )}>
-          {allRequiredMapped ? (
-            <Check className="w-4 h-4" />
-          ) : (
-            <AlertTriangle className="w-4 h-4" />
-          )}
-          <span className="font-medium">
-            {allRequiredMapped 
-              ? "Tudo pronto!" 
-              : `${missingRequired.length} campo(s) obrigatório(s) pendente(s)`
-            }
-          </span>
+      {/* Header with visual guide */}
+      <div className="flex items-center justify-center gap-4 py-3 px-4 bg-muted/30 rounded-lg">
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-muted-foreground/50" />
+          <span className="text-sm font-medium text-muted-foreground">Sua Coluna</span>
         </div>
-        
-        <div className="text-muted-foreground">
-          {matchedCount} de {targetColumns.length} conectadas
+        <ArrowRight className="w-5 h-5 text-primary" />
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-primary" />
+          <span className="text-sm font-medium text-primary">Campo do Sistema</span>
         </div>
       </div>
 
-      {/* Mapping List - Cleaner */}
-      <div className="space-y-2 max-h-[350px] overflow-y-auto">
+      {/* Status - only show missing count */}
+      {!allRequiredMapped && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
+          <AlertTriangle className="w-4 h-4" />
+          <span className="text-sm font-medium">
+            {missingRequired.length} campo(s) obrigatório(s) pendente(s)
+          </span>
+        </div>
+      )}
+
+      {/* Mapping List */}
+      <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1">
         {mappings.map((mapping, idx) => {
           const target = targetColumns.find(t => t.key === mapping.targetKey);
           const isConnected = !!mapping.targetKey;
           const wasAutoDetected = mapping.confidence >= 0.7 && isConnected;
+          const samples = getSampleValues(mapping.sourceColumn);
           
           return (
             <div 
               key={idx}
               className={cn(
-                "flex items-center gap-3 p-3 rounded-lg border transition-all",
+                "rounded-xl border-2 p-4 transition-all",
                 isConnected 
-                  ? "bg-card border-green-500/30 dark:border-green-500/20" 
-                  : "bg-muted/30 border-dashed border-muted-foreground/30"
+                  ? "border-green-500/40 bg-green-500/5" 
+                  : "border-dashed border-muted-foreground/30 bg-muted/10"
               )}
             >
-              {/* Status Icon */}
-              <div className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
-                isConnected ? "bg-green-500/10" : "bg-muted"
-              )}>
-                {isConnected ? (
-                  <Link2 className="w-4 h-4 text-green-500" />
-                ) : (
-                  <Link2Off className="w-4 h-4 text-muted-foreground" />
+              {/* Connection Label */}
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Conecte: Coluna → Campo
+                </span>
+                {wasAutoDetected && (
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-0">
+                    auto-detectado
+                  </Badge>
                 )}
               </div>
 
-              {/* Source Column */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-foreground truncate">
+              <div className="flex items-stretch gap-3">
+                {/* Source Column Block */}
+                <div className="flex-1 bg-muted/50 rounded-lg p-3 border border-muted-foreground/20">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                    SUA COLUNA
+                  </p>
+                  <p className="font-medium text-foreground text-sm truncate">
                     {mapping.sourceColumn}
-                  </span>
-                  {wasAutoDetected && (
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-0">
-                      auto
-                    </Badge>
+                  </p>
+                  {samples.length > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1.5 truncate">
+                      Ex: {samples.join(', ')}
+                    </p>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">Sua coluna</p>
-              </div>
 
-              {/* Arrow */}
-              <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0" />
-
-              {/* Target Selector */}
-              <div className="flex-1 min-w-0">
-                <Select
-                  value={mapping.targetKey || 'none'}
-                  onValueChange={(val) => handleMappingChange(mapping.sourceColumn, val === 'none' ? null : val)}
-                >
-                  <SelectTrigger className={cn(
-                    "w-full h-auto py-2",
-                    !mapping.targetKey && "text-muted-foreground border-dashed"
+                {/* Arrow */}
+                <div className="flex items-center justify-center w-10">
+                  <div className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center transition-colors",
+                    isConnected ? "bg-green-500/20" : "bg-muted"
                   )}>
-                    <SelectValue placeholder="Selecionar campo..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">
-                      <span className="text-muted-foreground">Ignorar esta coluna</span>
-                    </SelectItem>
-                    {mapping.targetKey && (
-                      <SelectItem value={mapping.targetKey}>
-                        <div className="flex items-center gap-2">
-                          {target?.required && (
-                            <CircleDot className="w-3 h-3 text-amber-500" />
-                          )}
-                          <span>{target?.label || mapping.targetKey}</span>
-                        </div>
-                      </SelectItem>
+                    {isConnected ? (
+                      <Link2 className="w-4 h-4 text-green-500" />
+                    ) : (
+                      <ArrowRight className="w-4 h-4 text-muted-foreground" />
                     )}
-                    {availableTargets.map(t => (
-                      <SelectItem key={t.key} value={t.key}>
-                        <div className="flex items-center gap-2">
-                          {t.required && (
-                            <CircleDot className="w-3 h-3 text-amber-500" />
-                          )}
-                          <span>{t.label}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground mt-1">Campo do sistema</p>
-              </div>
+                  </div>
+                </div>
 
-              {/* Remove Button */}
-              <button 
-                onClick={() => handleRemoveMapping(mapping.sourceColumn)}
-                className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors shrink-0"
-                title="Remover"
-              >
-                <X className="w-4 h-4" />
-              </button>
+                {/* Target Selector Block */}
+                <div className="flex-1 rounded-lg p-3 border border-primary/30 bg-primary/5">
+                  <p className="text-[10px] font-semibold text-primary uppercase tracking-wider mb-1">
+                    CAMPO DO SISTEMA
+                  </p>
+                  <Select
+                    value={mapping.targetKey || 'none'}
+                    onValueChange={(val) => handleMappingChange(mapping.sourceColumn, val === 'none' ? null : val)}
+                  >
+                    <SelectTrigger className={cn(
+                      "w-full h-8 text-sm bg-background/50",
+                      !mapping.targetKey && "text-muted-foreground"
+                    )}>
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border-border z-50">
+                      <SelectItem value="none">
+                        <span className="text-muted-foreground">Ignorar coluna</span>
+                      </SelectItem>
+                      
+                      {/* Current selection if any */}
+                      {mapping.targetKey && (
+                        <SelectItem value={mapping.targetKey}>
+                          <div className="flex items-center gap-2">
+                            {target?.required && (
+                              <AlertCircle className="w-3 h-3 text-amber-500" />
+                            )}
+                            <span>{target?.label || mapping.targetKey}</span>
+                          </div>
+                        </SelectItem>
+                      )}
+
+                      {/* Required fields first */}
+                      {requiredTargets.length > 0 && (
+                        <>
+                          <SelectSeparator />
+                          <SelectGroup>
+                            <SelectLabel className="text-amber-600 dark:text-amber-400 font-semibold">
+                              ❗ Obrigatórios
+                            </SelectLabel>
+                            {requiredTargets.map(t => (
+                              <SelectItem key={t.key} value={t.key}>
+                                <div className="flex items-center gap-2">
+                                  <AlertCircle className="w-3 h-3 text-amber-500" />
+                                  <span className="font-medium">{t.label}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </>
+                      )}
+
+                      {/* Optional fields */}
+                      {optionalTargets.length > 0 && (
+                        <>
+                          <SelectSeparator />
+                          <SelectGroup>
+                            <SelectLabel className="text-muted-foreground">
+                              Opcionais
+                            </SelectLabel>
+                            {optionalTargets.map(t => (
+                              <SelectItem key={t.key} value={t.key}>
+                                <span>{t.label}</span>
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Remove Button */}
+                <button 
+                  onClick={() => handleRemoveMapping(mapping.sourceColumn)}
+                  className="self-center p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
+                  title="Remover"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           );
         })}
@@ -255,7 +318,7 @@ const SmartColumnMapper: React.FC<SmartColumnMapperProps> = ({
       {unmappedSources.length > 0 && (
         <div className="pt-3 border-t border-border">
           <p className="text-xs text-muted-foreground mb-2">
-            Outras colunas do seu arquivo (clique para adicionar):
+            Outras colunas no arquivo (clique para adicionar):
           </p>
           <div className="flex flex-wrap gap-2">
             {unmappedSources.map(col => (
@@ -271,37 +334,44 @@ const SmartColumnMapper: React.FC<SmartColumnMapperProps> = ({
         </div>
       )}
 
-      {/* Missing required columns - Clear warning */}
-      {missingRequired.length > 0 && (
-        <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-          <div className="flex items-center gap-2 mb-2">
-            <AlertTriangle className="w-4 h-4 text-amber-500" />
-            <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
-              Campos obrigatórios faltando:
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {missingRequired.map(col => (
-              <Badge 
-                key={col.key} 
-                variant="outline" 
-                className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
+      {/* Progress Checklist */}
+      <div className="bg-muted/20 rounded-lg p-4 space-y-2">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+          Progresso ({connectedRequired.length}/{totalRequired} obrigatórios)
+        </p>
+        <div className="grid gap-1.5">
+          {targetColumns.filter(t => t.required).map(field => {
+            const isConnected = mappedTargetKeys.has(field.key);
+            return (
+              <div 
+                key={field.key}
+                className={cn(
+                  "flex items-center gap-2 text-sm py-1",
+                  isConnected ? "text-green-600 dark:text-green-400" : "text-muted-foreground"
+                )}
               >
-                {col.label}
-              </Badge>
-            ))}
-          </div>
+                {isConnected ? (
+                  <Check className="w-4 h-4" />
+                ) : (
+                  <X className="w-4 h-4 text-amber-500" />
+                )}
+                <span className={isConnected ? "line-through opacity-70" : "font-medium"}>
+                  {field.label}
+                </span>
+              </div>
+            );
+          })}
         </div>
-      )}
+      </div>
 
-      {/* Actions - Clear and prominent */}
+      {/* Actions */}
       <div className="flex items-center justify-between pt-4 border-t border-border">
         <Button variant="ghost" onClick={onCancel} className="text-muted-foreground">
           Cancelar
         </Button>
         <Button 
           onClick={handleConfirm}
-          disabled={missingRequired.length > 0}
+          disabled={!allRequiredMapped}
           className="gap-2 min-w-[180px]"
         >
           <Check className="w-4 h-4" />
